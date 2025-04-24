@@ -5,9 +5,11 @@ import { Menu, X } from "lucide-react"
 import { Dialog, DialogContent } from "./components/ui/dialog"
 import { Button } from "./components/ui/button"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./components/ui/carousel"
+import { useNavigate } from "react-router-dom"
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   const carouselItems = [
     {
@@ -24,6 +26,10 @@ function App() {
     },
   ]
 
+  const goToStudentArea = () => {
+    navigate("/student-area")
+  }
+
   return (
     <main className="min-h-screen flex flex-col">
       {/* Navbar */}
@@ -36,7 +42,7 @@ function App() {
 
       {/* Menu Dialog */}
       <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300">
+        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Menu</h2>
             <button
@@ -58,6 +64,16 @@ function App() {
             </Button>
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
               Contato
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200"
+              onClick={() => {
+                setIsMenuOpen(false)
+                goToStudentArea()
+              }}
+            >
+              Área do Aluno
             </Button>
           </div>
         </DialogContent>
@@ -109,6 +125,7 @@ function App() {
         <Button
           variant="outline"
           className="h-24 bg-gray-100 hover:bg-gray-200 flex items-center justify-center rounded-md border border-gray-300 shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:shadow-md"
+          onClick={goToStudentArea}
         >
           <span className="font-medium">Área do Aluno</span>
         </Button>

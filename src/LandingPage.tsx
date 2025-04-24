@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X } from 'lucide-react'
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { Menu, X } from "lucide-react"
+import { Dialog, DialogContent } from "./components/ui/dialog"
+import { Button } from "./components/ui/button"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./components/ui/carousel"
+import { useNavigate } from "react-router-dom"
 
-export default function Home() {
+export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   const carouselItems = [
     {
@@ -24,6 +26,10 @@ export default function Home() {
     },
   ]
 
+  const goToStudentArea = () => {
+    navigate("/student-area")
+  }
+
   return (
     <main className="min-h-screen flex flex-col">
       {/* Navbar */}
@@ -36,10 +42,13 @@ export default function Home() {
 
       {/* Menu Dialog */}
       <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300">
+        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Menu</h2>
-            <button onClick={() => setIsMenuOpen(false)} className="rounded-full p-1 hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => setIsMenuOpen(false)}
+              className="rounded-full p-1 hover:bg-gray-100 transition-colors"
+            >
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -56,13 +65,23 @@ export default function Home() {
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
               Contato
             </Button>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200"
+              onClick={() => {
+                setIsMenuOpen(false)
+                goToStudentArea()
+              }}
+            >
+              Área do Aluno
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Carousel Section */}
       <section className="w-full bg-pink-200 p-4 relative">
-        <Carousel>
+        <Carousel className="w-full">
           <CarouselContent>
             {carouselItems.map((item, index) => (
               <CarouselItem key={index}>
@@ -74,12 +93,8 @@ export default function Home() {
             ))}
           </CarouselContent>
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center gap-2">
-            <button className="relative h-8 w-8 rounded-full border border-gray-300 bg-white shadow-sm">
-              <CarouselPrevious />
-            </button>
-            <button className="relative h-8 w-8 rounded-full border border-gray-300 bg-white shadow-sm">
-              <CarouselNext />
-            </button>
+            <CarouselPrevious className="relative h-8 w-8 rounded-full border border-gray-300 bg-white shadow-sm" />
+            <CarouselNext className="relative h-8 w-8 rounded-full border border-gray-300 bg-white shadow-sm" />
           </div>
         </Carousel>
       </section>
@@ -93,23 +108,24 @@ export default function Home() {
 
       {/* Card Buttons */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mt-2">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-24 bg-gray-100 hover:bg-gray-200 flex items-center justify-center rounded-md border border-gray-300 shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:shadow-md"
         >
           <span className="font-medium">Horários</span>
         </Button>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-24 bg-gray-100 hover:bg-gray-200 flex items-center justify-center rounded-md border border-gray-300 shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:shadow-md"
         >
           <span className="font-medium">Como chegar?</span>
         </Button>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-24 bg-gray-100 hover:bg-gray-200 flex items-center justify-center rounded-md border border-gray-300 shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:shadow-md"
+          onClick={goToStudentArea}
         >
           <span className="font-medium">Área do Aluno</span>
         </Button>

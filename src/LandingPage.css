@@ -1,179 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  color-scheme: light;
-  background-color: #ffffff;
-  font-family: 'Segoe UI', sans-serif;
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
 }
-html, body {
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-}
+
 body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+/* Animações personalizadas */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-out, slideUp 0.3s ease-out;
+}
+
+/* Estilos personalizados */
+.dialog-content {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-button {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.card-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-nav-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: white;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
-}
-
-.layout-wrapper {
-  width: 100%;
-  padding: 4rem 1rem 2rem;
-}
-.content-box {
-  width: 100%;
-  max-width: 640px;
-  padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.navbar {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #ccc;
-}
-.logo {
-  font-weight: bold;
-  font-size: clamp(1.2rem, 4vw, 1.5rem);
-  color: #1e3a8a;
-}
-.menu-toggle {
-  background-color: #808080;
-  border: none;
-  cursor: pointer;
-  font-size: 2rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
-  transition: 0.2s ease;
-}
-.menu-toggle:hover {
-  background-color: #808080;
-  color: #f2f2f2;
-}
-
-.carousel-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 640px;
-  margin: 2rem auto;
-}
-
-.carrossel-box {
-  background: #ab3d44;
-  padding: 2rem 0;
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-
-.keen-slider {
-  display: flex;
-  width: 100%;
-  overflow: visible;
-}
-
-.keen-slider__slide {
-  flex: 0 0 100%;
-  display: flex;
   justify-content: center;
-  align-items: center;
-}
-
-.carrossel-item {
-  background: #101828;
-  border-radius: 0.75rem;
-  height: 200px;
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font-weight: 600;
-  font-size: clamp(1.1rem, 2vw, 1.3rem);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #1e3a8a;
-  cursor: pointer;
-  z-index: 10;
-}
-.arrow.left {
-  left: 0.5rem;
-}
-.arrow.right {
-  right: 0.5rem;
-}
-
-.descricao {
-  text-align: center;
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  margin: 1rem auto 2rem;
-  color: #444;
-  max-width: 90%;
-}
-
-.cards-menus {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.card-duplo {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
-}
-.mini-card,
-.card-aluno {
-  background: #7a7a7a;
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  text-align: center;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
-}
-.mini-card {
-  flex: 1 1 45%;
-  min-width: 140px;
-  max-width: 240px;
-}
-.card-aluno {
-  width: 90%;
-  max-width: 500px;
-}
-.mini-card:hover,
-.card-aluno:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.menu-btn {
-  background-color: #e0f2fe;
-  color: #0c4a6e;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-.menu-btn:hover {
-  background-color: #bae6fd;
-  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }

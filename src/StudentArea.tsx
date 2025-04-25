@@ -41,6 +41,14 @@ export default function StudentArea() {
     { id: 6, name: "Peitoral B", sets: 3, reps: 12, weight: 35, completed: false, timerActive: false, timerSeconds: 0 },
   ])
 
+  // Verificar se o usuário está logado
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
+    if (!isLoggedIn) {
+      navigate("/login")
+    }
+  }, [navigate])
+
   // Gerar dias do mês atual
   const generateDaysOfMonth = () => {
     const today = new Date()
@@ -90,56 +98,61 @@ export default function StudentArea() {
   }, [])
 
   const toggleTimer = (id: number) => {
-    // Se já existe um timer rodando, significa que está ativo → então vamos parar
-    if (timerRefs.current[id]) {
-      clearInterval(timerRefs.current[id])
-      delete timerRefs.current[id]
-  
-      setExercises((prev) =>
-        prev.map((ex) =>
-          ex.id === id ? { ...ex, timerActive: false } : ex
-        )
-      )
-    } else {
-      // Caso contrário, iniciamos um novo timer
-      const timerId = setInterval(() => {
-        setExercises((prev) =>
-          prev.map((ex) =>
-            ex.id === id
-              ? { ...ex, timerSeconds: ex.timerSeconds + 1 }
-              : ex
-          )
-        )
-      }, 1000)
-  
-      timerRefs.current[id] = timerId
-  
-      setExercises((prev) =>
-        prev.map((ex) =>
-          ex.id === id ? { ...ex, timerActive: true } : ex
-        )
-      )
-    }
+    setExercises((prevExercises) => {
+      return prevExercises.map((exercise) => {
+        if (exercise.id === id) {
+          // Se o timer estiver ativo, desative-o
+          if (exercise.timerActive) {
+            // Limpe o timer existente
+            if (timerRefs.current[id]) {
+              clearInterval(timerRefs.current[id])
+              delete timerRefs.current[id]
+            }
+            return { ...exercise, timerActive: false }
+          }
+          // Se o timer estiver inativo, ative-o
+          else {
+            // Crie um novo timer
+            const timerId = setInterval(() => {
+              setExercises((prevExs) => {
+                return prevExs.map((ex) => {
+                  if (ex.id === id) {
+                    return { ...ex, timerSeconds: ex.timerSeconds + 1 }
+                  }
+                  return ex
+                })
+              })
+            }, 1000)
+
+            // Armazene a referência do timer
+            timerRefs.current[id] = timerId
+            return { ...exercise, timerActive: true }
+          }
+        }
+        return exercise
+      })
+    })
   }
-  
-  
 
   const resetTimer = (id: number, event: React.MouseEvent) => {
-    event.stopPropagation()
-  
+    event.stopPropagation() // Impede que o evento de clique se propague para o toggleTimer
+
+    // Limpe o timer existente
     if (timerRefs.current[id]) {
       clearInterval(timerRefs.current[id])
       delete timerRefs.current[id]
     }
-  
-    setExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === id ? { ...ex, timerSeconds: 0, timerActive: false } : ex
-      )
-    )
+
+    setExercises((prevExercises) => {
+      return prevExercises.map((exercise) => {
+        if (exercise.id === id) {
+          return { ...exercise, timerActive: false, timerSeconds: 0 }
+        }
+        return exercise
+      })
+    })
   }
-  
-  
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -190,10 +203,20 @@ export default function StudentArea() {
     navigate("/")
   }
 
+  const goToProfile = () => {
+    navigate("/profile")
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn")
+    localStorage.removeItem("userEmail")
+    navigate("/login")
+  }
+
   return (
-    <main className="min-h-screen flex flex-col bg-gray-50">
+    <main className="min-h-screen flex flex-col bg-gray-900 text-white">
       {/* Navbar */}
-      <nav className="flex justify-between items-center p-4 bg-gray-100 shadow-sm">
+      <nav className="flex justify-between items-center p-4 bg-gray-800 shadow-sm text-white">
         <h1 className="text-xl font-bold">UnyGym</h1>
         <button onClick={() => setIsMenuOpen(true)} aria-label="Menu" className="p-2">
           <Menu className="h-6 w-6" />
@@ -202,7 +225,7 @@ export default function StudentArea() {
 
       {/* Menu Dialog */}
       <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
+        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white text-black">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Menu</h2>
             <button
@@ -227,13 +250,40 @@ export default function StudentArea() {
               Sobre nós
             </Button>
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
-              Serviços
+              Professores
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
-              Contato
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200"
+              onClick={() => {
+                setIsMenuOpen(false)
+                goToProfile()
+              }}
+            >
+              Perfil
             </Button>
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
               Área do Aluno
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200"
+              onClick={() => {
+                setIsMenuOpen(false)
+                navigate("/schedule")
+              }}
+            >
+              Horários
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200 text-red-500"
+              onClick={() => {
+                setIsMenuOpen(false)
+                handleLogout()
+              }}
+            >
+              Sair
             </Button>
           </div>
         </DialogContent>

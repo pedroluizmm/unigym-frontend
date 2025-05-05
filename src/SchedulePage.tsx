@@ -1,11 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Menu, X, Clock, BookOpen, Check, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent } from "./components/ui/dialog"
 import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom"
 import "./SchedulePage.css"
+
+// importações das APIs
+import {
+  getScheduleSlots,
+  getScheduleGrid,
+  getUserReservations,
+  reserveSlot as apiReserveSlot,
+  cancelReservation as apiCancelReservation,
+} from "@/services/api"
 
 interface TimeSlot {
   id: string
@@ -34,70 +43,50 @@ export default function SchedulePage() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("morning")
   const [isReservationDialogOpen, setIsReservationDialogOpen] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<{ row: string; col: number } | null>(null)
+
+  // estados de dados vindos do backend
+  const [scheduleData, setScheduleData] = useState<ScheduleData>({
+    morning: [],
+    afternoon: [],
+    evening: [],
+  })
+  const [scheduleGridData, setScheduleGridData] = useState<Record<PeriodType, ScheduleGridRow[]>>({
+    morning: [],
+    afternoon: [],
+    evening: [],
+  })
   const [userReservations, setUserReservations] = useState<{ [key: string]: boolean }>({})
 
-  // Dados dos horários
-  const scheduleData: ScheduleData = {
-    morning: [
-      { id: "A", start: "07:30", end: "08:20" },
-      { id: "B", start: "08:20", end: "09:10" },
-      { id: "C", start: "09:30", end: "10:20" },
-      { id: "D", start: "10:20", end: "11:10" },
-      { id: "E", start: "11:20", end: "12:10" },
-      { id: "F", start: "12:10", end: "13:00" },
-    ],
-    afternoon: [
-      { id: "A", start: "13:30", end: "14:20" },
-      { id: "B", start: "14:20", end: "15:10" },
-      { id: "C", start: "15:30", end: "16:20" },
-      { id: "D", start: "16:20", end: "17:10" },
-      { id: "E", start: "17:20", end: "18:10" },
-      { id: "F", start: "18:10", end: "19:00" },
-    ],
-    evening: [
-      { id: "A", start: "19:00", end: "19:50" },
-      { id: "B", start: "19:50", end: "20:40" },
-      { id: "C", start: "21:00", end: "21:50" },
-      { id: "D", start: "21:50", end: "22:40" },
-    ],
-  }
-
-  // Dados da grade de horários
-  const scheduleGridData = {
-    morning: [
-      { id: "A", days: [true, false, true, false, false, false], occupancy: [45, 0, 30, 0, 0, 0] },
-      { id: "B", days: [true, false, true, false, false, false], occupancy: [60, 0, 25, 0, 0, 0] },
-      { id: "C", days: [true, true, true, true, false, false], occupancy: [75, 40, 50, 35, 0, 0] },
-      { id: "D", days: [true, true, true, true, false, false], occupancy: [90, 65, 70, 55, 0, 0] },
-      { id: "E", days: [true, true, true, true, false, false], occupancy: [50, 45, 60, 40, 0, 0] },
-      { id: "F", days: [true, true, true, true, false, false], occupancy: [30, 25, 40, 20, 0, 0] },
-    ],
-    afternoon: [
-      { id: "A", days: [true, true, true, true, true, false], occupancy: [55, 40, 60, 45, 30, 0] },
-      { id: "B", days: [true, true, true, true, true, false], occupancy: [70, 65, 75, 60, 40, 0] },
-      { id: "C", days: [true, true, true, true, true, false], occupancy: [85, 70, 90, 75, 50, 0] },
-      { id: "D", days: [true, true, true, true, true, false], occupancy: [95, 80, 85, 70, 45, 0] },
-      { id: "E", days: [true, true, true, true, true, false], occupancy: [65, 55, 70, 50, 35, 0] },
-      { id: "F", days: [true, true, true, true, true, false], occupancy: [40, 35, 45, 30, 20, 0] },
-    ],
-    evening: [
-      { id: "A", days: [true, true, true, true, true, true], occupancy: [80, 75, 85, 70, 90, 60] },
-      { id: "B", days: [true, true, true, true, true, true], occupancy: [95, 90, 100, 85, 95, 70] },
-      { id: "C", days: [true, true, true, true, true, true], occupancy: [70, 65, 75, 60, 80, 50] },
-      { id: "D", days: [true, true, true, true, true, true], occupancy: [50, 45, 55, 40, 60, 30] },
-    ],
-  }
-
   const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
+  const token = localStorage.getItem("token")!
+
+  // carregar dados iniciais
+  useEffect(() => {
+    if (!token) {
+      navigate("/login")
+      return
+    }
+    getScheduleSlots(token).then(setScheduleData).catch(() => {/* tratar erro */})
+    getScheduleGrid(token).then(setScheduleGridData).catch(() => {/* tratar erro */})
+    getUserReservations(token).then(setUserReservations).catch(() => {/* tratar erro */})
+  }, [navigate, token])
 
   const handleSlotClick = (rowId: string, colIndex: number) => {
     const slotKey = `${selectedPeriod}-${rowId}-${colIndex}`
 
-    // Se já está reservado pelo usuário, cancela a reserva
     if (userReservations[slotKey]) {
-      const updatedReservations = { ...userReservations }
-      delete updatedReservations[slotKey]
-      setUserReservations(updatedReservations)
+      // cancelar via API
+      apiCancelReservation(token, selectedPeriod, rowId, colIndex)
+        .then(() => {
+          setUserReservations((prev) => {
+            const next = { ...prev }
+            delete next[slotKey]
+            return next
+          })
+        })
+        .catch(() => {
+          // opcional: mostrar erro
+        })
       return
     }
 
@@ -106,15 +95,18 @@ export default function SchedulePage() {
   }
 
   const confirmReservation = () => {
-    if (selectedSlot) {
-      const slotKey = `${selectedPeriod}-${selectedSlot.row}-${selectedSlot.col}`
-      setUserReservations({
-        ...userReservations,
-        [slotKey]: true,
+    if (!selectedSlot) return
+    const { row, col } = selectedSlot
+    apiReserveSlot(token, selectedPeriod, row, col)
+      .then(() => {
+        const slotKey = `${selectedPeriod}-${row}-${col}`
+        setUserReservations((prev) => ({ ...prev, [slotKey]: true }))
+        setIsReservationDialogOpen(false)
+        setSelectedSlot(null)
       })
-      setIsReservationDialogOpen(false)
-      setSelectedSlot(null)
-    }
+      .catch(() => {
+        // opcional: mostrar erro
+      })
   }
 
   const getOccupancyColor = (occupancy: number) => {
@@ -129,26 +121,15 @@ export default function SchedulePage() {
     return "Alta"
   }
 
-  const goToHome = () => {
-    navigate("/")
-  }
-
-  const goToProfile = () => {
-    navigate("/profile")
-  }
-
-  const goToStudentArea = () => {
-    navigate("/student-area")
-  }
+  const goToHome = () => navigate("/")
+  const goToProfile = () => navigate("/profile")
+  const goToStudentArea = () => navigate("/student-area")
 
   const getPeriodLabel = (period: PeriodType) => {
     switch (period) {
-      case "morning":
-        return "Manhã"
-      case "afternoon":
-        return "Tarde"
-      case "evening":
-        return "Noite"
+      case "morning": return "Manhã"
+      case "afternoon": return "Tarde"
+      case "evening": return "Noite"
     }
   }
 
@@ -167,22 +148,12 @@ export default function SchedulePage() {
         <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white text-black">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Menu</h2>
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="rounded-full p-1 hover:bg-gray-100 transition-colors"
-            >
+            <button onClick={() => setIsMenuOpen(false)} className="rounded-full p-1 hover:bg-gray-100 transition-colors">
               <X className="h-6 w-6" />
             </button>
           </div>
           <div className="flex flex-col space-y-4">
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                goToHome()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); goToHome() }}>
               Início
             </Button>
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
@@ -191,24 +162,10 @@ export default function SchedulePage() {
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
               Serviços
             </Button>
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                goToProfile()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); goToProfile() }}>
               Perfil
             </Button>
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                goToStudentArea()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); goToStudentArea() }}>
               Área do Aluno
             </Button>
           </div>
@@ -220,18 +177,14 @@ export default function SchedulePage() {
         <h1 className="text-3xl font-bold mb-6">Horários</h1>
         <div className="flex border-b border-blue-500">
           <button
-            className={`flex items-center px-4 py-2 ${
-              activeTab === "overview" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"
-            }`}
+            className={`flex items-center px-4 py-2 ${activeTab === "overview" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"}`}
             onClick={() => setActiveTab("overview")}
           >
             <BookOpen className="h-5 w-5 mr-2" />
             Visão geral
           </button>
           <button
-            className={`flex items-center px-4 py-2 ${
-              activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"
-            }`}
+            className={`flex items-center px-4 py-2 ${activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"}`}
             onClick={() => setActiveTab("details")}
           >
             <Clock className="h-5 w-5 mr-2" />
@@ -265,22 +218,18 @@ export default function SchedulePage() {
                 <div className="schedule-grid">
                   <div className="schedule-row header">
                     <div className="schedule-cell"></div>
-                    {days.map((day, index) => (
-                      <div key={index} className="schedule-cell day-header">
-                        {day}
-                      </div>
+                    {days.map((day, i) => (
+                      <div key={i} className="schedule-cell day-header">{day}</div>
                     ))}
                   </div>
-                  {scheduleGridData[selectedPeriod].map((row) => (
+                  {scheduleGridData[selectedPeriod]?.map((row) => (
                     <div key={row.id} className="schedule-row">
                       <div className="schedule-cell period-id">{row.id}</div>
                       {row.days.map((hasClass, dayIndex) => (
                         <div key={dayIndex} className="schedule-cell">
                           {hasClass && (
                             <div
-                              className={`schedule-slot ${getOccupancyColor(row.occupancy[dayIndex])} ${
-                                userReservations[`${selectedPeriod}-${row.id}-${dayIndex}`] ? "reserved" : ""
-                              }`}
+                              className={`schedule-slot ${getOccupancyColor(row.occupancy[dayIndex])} ${userReservations[`${selectedPeriod}-${row.id}-${dayIndex}`] ? "reserved" : ""}`}
                               onClick={() => handleSlotClick(row.id, dayIndex)}
                             >
                               {userReservations[`${selectedPeriod}-${row.id}-${dayIndex}`] && (
@@ -327,50 +276,19 @@ export default function SchedulePage() {
           <div className="schedule-details">
             <h2 className="text-xl font-bold mb-4">Horários da academia</h2>
 
-            {/* Manhã */}
-            <div className="time-period">
-              <h3 className="text-lg mb-2">Manhã</h3>
-              <div className="time-slots">
-                {scheduleData.morning.map((slot, index) => (
-                  <div key={index} className={`time-slot ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"}`}>
-                    <div className="slot-id">{slot.id}</div>
-                    <div className="slot-time">
-                      {slot.start} às {slot.end}
+            {(["morning", "afternoon", "evening"] as PeriodType[]).map((period) => (
+              <div key={period} className="time-period">
+                <h3 className="text-lg mb-2">{getPeriodLabel(period)}</h3>
+                <div className="time-slots">
+                  {scheduleData[period]?.map((slot, idx) => (
+                    <div key={idx} className={`time-slot ${idx % 2 === 0 ? "bg-gray-800" : "bg-gray-700"}`}>
+                      <div className="slot-id">{slot.id}</div>
+                      <div className="slot-time">{slot.start} às {slot.end}</div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Tarde */}
-            <div className="time-period">
-              <h3 className="text-lg mb-2">Tarde</h3>
-              <div className="time-slots">
-                {scheduleData.afternoon.map((slot, index) => (
-                  <div key={index} className={`time-slot ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"}`}>
-                    <div className="slot-id">{slot.id}</div>
-                    <div className="slot-time">
-                      {slot.start} às {slot.end}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Noite */}
-            <div className="time-period">
-              <h3 className="text-lg mb-2">Noite</h3>
-              <div className="time-slots">
-                {scheduleData.evening.map((slot, index) => (
-                  <div key={index} className={`time-slot ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"}`}>
-                    <div className="slot-id">{slot.id}</div>
-                    <div className="slot-time">
-                      {slot.start} às {slot.end}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>
@@ -383,8 +301,9 @@ export default function SchedulePage() {
             {selectedSlot && (
               <div className="mb-4">
                 <p>
-                  Deseja reservar o horário {scheduleData[selectedPeriod].find((s) => s.id === selectedSlot.row)?.start}{" "}
-                  às {scheduleData[selectedPeriod].find((s) => s.id === selectedSlot.row)?.end} de{" "}
+                  Deseja reservar o horário{" "}
+                  {scheduleData[selectedPeriod].find((s) => s.id === selectedSlot.row)?.start} às{" "}
+                  {scheduleData[selectedPeriod].find((s) => s.id === selectedSlot.row)?.end} de{" "}
                   {days[selectedSlot.col]}?
                 </p>
                 <div className="mt-2 flex items-center">
@@ -393,15 +312,13 @@ export default function SchedulePage() {
                     Ocupação prevista:{" "}
                     <span className="font-medium">
                       {
-                        scheduleGridData[selectedPeriod].find((r) => r.id === selectedSlot.row)?.occupancy[
-                          selectedSlot.col
-                        ]
+                        scheduleGridData[selectedPeriod].find((r) => r.id === selectedSlot.row)
+                          ?.occupancy[selectedSlot.col]
                       }
                       % (
                       {getOccupancyText(
-                        scheduleGridData[selectedPeriod].find((r) => r.id === selectedSlot.row)?.occupancy[
-                          selectedSlot.col
-                        ] || 0,
+                        scheduleGridData[selectedPeriod].find((r) => r.id === selectedSlot.row)
+                          ?.occupancy[selectedSlot.col] || 0
                       )}
                       )
                     </span>

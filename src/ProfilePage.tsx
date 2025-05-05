@@ -1,13 +1,15 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Menu, X, Edit2, User } from "lucide-react"
 import { Dialog, DialogContent } from "./components/ui/dialog"
 import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom"
 import "./ProfilePage.css"
+
+// importação das funções de API
+import { getProfile, updateProfile, getAchievements } from "@/services/api"
 
 interface Achievement {
   id: number
@@ -23,7 +25,6 @@ interface UserProfile {
   name: string
   age: number
   email: string
-  password: string
   phone: string
   weight: number
 }
@@ -32,103 +33,66 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const token = localStorage.getItem("token")!
 
-  // Verificar se o usuário está logado
+  // estados de dados
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [editForm, setEditForm] = useState<Partial<UserProfile>>({})
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  // Verificar se o usuário está logado e carregar dados
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-    if (!isLoggedIn) {
+    if (!token) {
       navigate("/login")
+      return
     }
-  }, [navigate])
-
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: "João Silva",
-    age: 28,
-    email: localStorage.getItem("userEmail") || "joao.silva@email.com",
-    password: "********",
-    phone: "(11) 98765-4321",
-    weight: 75,
-  })
-
-  const [editForm, setEditForm] = useState<UserProfile>({ ...userProfile })
-
-  const [achievements, setAchievements] = useState<Achievement[]>([
-    {
-      id: 1,
-      title: "5 Dias Consecutivos",
-      description: "Treinou por 5 dias consecutivos",
-      icon: "🔥",
-      unlocked: true,
-    },
-    {
-      id: 2,
-      title: "Primeiro Treino",
-      description: "Completou seu primeiro treino",
-      icon: "🎯",
-      unlocked: true,
-    },
-    {
-      id: 3,
-      title: "Superação de Peso",
-      description: "Aumentou o peso em um exercício",
-      icon: "💪",
-      unlocked: true,
-    },
-    {
-      id: 4,
-      title: "10 Treinos Completos",
-      description: "Completou 10 treinos",
-      icon: "🏆",
-      unlocked: false,
-      progress: 7,
-      total: 10,
-    },
-    {
-      id: 5,
-      title: "30 Dias de Treino",
-      description: "Treinou por 30 dias no total",
-      icon: "📅",
-      unlocked: false,
-      progress: 18,
-      total: 30,
-    },
-    {
-      id: 6,
-      title: "Mestre do Fitness",
-      description: "Completou todos os tipos de treino",
-      icon: "👑",
-      unlocked: false,
-      progress: 2,
-      total: 3,
-    },
-  ])
-
-  const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setUserProfile(editForm)
-    setIsEditDialogOpen(false)
-  }
+    getProfile(token)
+      .then((profile) => {
+        setUserProfile(profile)
+        setEditForm(profile)
+      })
+      .catch(() => {
+        navigate("/login")
+      })
+    getAchievements(token).then(setAchievements).catch(() => {
+      /* falha silenciosa */
+    })
+  }, [navigate, token])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setEditForm({
-      ...editForm,
+    setEditForm((prev) => ({
+      ...prev,
       [name]: name === "age" || name === "weight" ? Number(value) : value,
-    })
+    }))
   }
 
-  const goToHome = () => {
-    navigate("/")
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userProfile) return
+    setError(null)
+    try {
+      const updated = await updateProfile(token, editForm as UserProfile)
+      setUserProfile(updated)
+      setEditForm(updated)
+      setIsEditDialogOpen(false)
+    } catch (err: any) {
+      setError(err.message || "Erro ao salvar perfil")
+    }
   }
 
-  const goToStudentArea = () => {
-    navigate("/student-area")
-  }
-
+  const goToHome = () => navigate("/")
+  const goToStudentArea = () => navigate("/student-area")
   const handleLogout = () => {
+    localStorage.removeItem("token")
     localStorage.removeItem("isLoggedIn")
     localStorage.removeItem("userEmail")
     navigate("/login")
+  }
+
+  if (!userProfile) {
+    return <p className="text-center text-white">Carregando...</p>
   }
 
   return (
@@ -154,14 +118,7 @@ export default function ProfilePage() {
             </button>
           </div>
           <div className="flex flex-col space-y-4">
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                goToHome()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); goToHome(); }}>
               Início
             </Button>
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
@@ -173,34 +130,13 @@ export default function ProfilePage() {
             <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200">
               Perfil
             </Button>
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                goToStudentArea()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); goToStudentArea(); }}>
               Área do Aluno
             </Button>
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200"
-              onClick={() => {
-                setIsMenuOpen(false)
-                navigate("/schedule")
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200" onClick={() => { setIsMenuOpen(false); navigate("/schedule"); }}>
               Horários
             </Button>
-            <Button
-              variant="ghost"
-              className="justify-start hover:bg-gray-100 transition-all duration-200 text-red-500"
-              onClick={() => {
-                setIsMenuOpen(false)
-                handleLogout()
-              }}
-            >
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200 text-red-500" onClick={() => { setIsMenuOpen(false); handleLogout(); }}>
               Sair
             </Button>
           </div>
@@ -258,6 +194,7 @@ export default function ProfilePage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
           <h3 className="text-lg font-medium mb-4">Editar Perfil</h3>
+          {error && <div className="text-red-600 mb-2">{error}</div>}
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="form-group">
               <label htmlFor="name">Nome</label>
@@ -265,7 +202,7 @@ export default function ProfilePage() {
                 type="text"
                 id="name"
                 name="name"
-                value={editForm.name}
+                value={editForm.name || ""}
                 onChange={handleInputChange}
                 className="form-input"
                 required
@@ -277,7 +214,7 @@ export default function ProfilePage() {
                 type="number"
                 id="age"
                 name="age"
-                value={editForm.age}
+                value={editForm.age || ""}
                 onChange={handleInputChange}
                 className="form-input"
                 min="1"
@@ -290,22 +227,9 @@ export default function ProfilePage() {
                 type="email"
                 id="email"
                 name="email"
-                value={editForm.email}
-                onChange={handleInputChange}
-                className="form-input"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Senha</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={editForm.password}
-                onChange={handleInputChange}
-                className="form-input"
-                required
+                value={userProfile.email}
+                disabled
+                className="form-input bg-gray-100 cursor-not-allowed"
               />
             </div>
             <div className="form-group">
@@ -314,7 +238,7 @@ export default function ProfilePage() {
                 type="tel"
                 id="phone"
                 name="phone"
-                value={editForm.phone}
+                value={editForm.phone || ""}
                 onChange={handleInputChange}
                 className="form-input"
                 required
@@ -326,7 +250,7 @@ export default function ProfilePage() {
                 type="number"
                 id="weight"
                 name="weight"
-                value={editForm.weight}
+                value={editForm.weight || ""}
                 onChange={handleInputChange}
                 className="form-input"
                 min="1"

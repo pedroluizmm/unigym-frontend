@@ -2,17 +2,13 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Menu, ChevronDown, Edit2, RefreshCw, X } from "lucide-react"
+import { Menu, ChevronDown, Edit2, RefreshCw, X, ChevronLeft } from "lucide-react"
 import { Dialog, DialogContent } from "./components/ui/dialog"
 import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom"
 
 // Importações das APIs
-import {
-  getWorkouts,
-  getExercises,
-  updateExercise,
-} from "@/services/api"
+import { getWorkouts, getExercises, updateExercise } from "@/services/api"
 
 interface Exercise {
   id: number
@@ -86,7 +82,7 @@ export default function StudentArea() {
     getExercises(token, workoutId)
       .then((dtos) => {
         // Converte cada ExerciseDTO no nosso tipo interno, adicionando timerActive e timerSeconds
-        const loaded: Exercise[] = dtos.map(dto => ({
+        const loaded: Exercise[] = dtos.map((dto) => ({
           id: dto.id,
           name: dto.name,
           sets: dto.sets,
@@ -95,14 +91,13 @@ export default function StudentArea() {
           completed: dto.completed,
           timerActive: false,
           timerSeconds: 0,
-        }));
-        setExercises(loaded);
+        }))
+        setExercises(loaded)
       })
       .catch(() => {
         // tratar erro de carregamento de exercícios
-      });
-  };
-
+      })
+  }
 
   // Gerar dias do mês atual
   const generateDaysOfMonth = () => {
@@ -120,7 +115,7 @@ export default function StudentArea() {
       const dayName = dayNames[dayOfWeek]
 
       let color = "bg-white"
-      if (i === today.getDate()) color = "bg-blue-500"
+      if (i === today.getDate()) color = "bg-blue-600"
       else if (dayOfWeek === 0 || dayOfWeek === 6) color = "bg-red-300"
       else if (i % 4 === 0) color = "bg-green-300"
 
@@ -159,15 +154,13 @@ export default function StudentArea() {
         } else {
           const timerId = setInterval(() => {
             setExercises((prevExs) =>
-              prevExs.map((e) =>
-                e.id === id ? { ...e, timerSeconds: e.timerSeconds + 1 } : e
-              )
+              prevExs.map((e) => (e.id === id ? { ...e, timerSeconds: e.timerSeconds + 1 } : e)),
             )
           }, 1000)
           timerRefs.current[id] = timerId
           return { ...ex, timerActive: true }
         }
-      })
+      }),
     )
   }
 
@@ -177,17 +170,13 @@ export default function StudentArea() {
       clearInterval(timerRefs.current[id])
       delete timerRefs.current[id]
     }
-    setExercises((prev) =>
-      prev.map((ex) =>
-        ex.id === id ? { ...ex, timerActive: false, timerSeconds: 0 } : ex
-      )
-    )
+    setExercises((prev) => prev.map((ex) => (ex.id === id ? { ...ex, timerActive: false, timerSeconds: 0 } : ex)))
   }
 
   const formatTime = (s: number) =>
-    `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60)
+    `${Math.floor(s / 60)
       .toString()
-      .padStart(2, "0")}`
+      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`
 
   const toggleExerciseCompletion = (id: number) => {
     setExercises((prev) =>
@@ -199,7 +188,7 @@ export default function StudentArea() {
           // tratar erro
         })
         return { ...ex, completed: updated }
-      })
+      }),
     )
   }
 
@@ -224,11 +213,7 @@ export default function StudentArea() {
       // Atualizar local e backend
       updateExercise(token, editingExercise.id, { weight: newWeight })
         .then(() => {
-          setExercises((prev) =>
-            prev.map((ex) =>
-              ex.id === editingExercise.id ? { ...ex, weight: newWeight } : ex
-            )
-          )
+          setExercises((prev) => prev.map((ex) => (ex.id === editingExercise.id ? { ...ex, weight: newWeight } : ex)))
         })
         .catch(() => {
           // tratar erro
@@ -246,41 +231,77 @@ export default function StudentArea() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-gray-900 text-white">
+    <main className="min-h-screen flex flex-col bg-blue-600 text-white">
       {/* Navbar */}
-      <nav className="flex justify-between items-center p-4 bg-gray-800 shadow-sm text-white">
-        <h1 className="text-xl font-bold">UnyGym</h1>
-        <button onClick={() => setIsMenuOpen(true)} aria-label="Menu" className="p-2">
+      <nav className="flex justify-between items-center p-4 bg-blue-700 shadow-md">
+        <div className="flex items-center gap-2">
+          <button onClick={goToHome} className="p-1 rounded-full hover:bg-blue-600 transition-colors">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <h1 className="text-xl font-bold">UniGym</h1>
+        </div>
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="Menu"
+          className="p-2 rounded-full hover:bg-blue-600 transition-colors"
+        >
           <Menu className="h-6 w-6" />
         </button>
       </nav>
 
       {/* Menu Dialog */}
       <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
-          <div className="flex justify-between items-center mb-4">
+        <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white text-black">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Menu</h2>
-            <button onClick={() => setIsMenuOpen(false)} className="rounded-full p-1 hover:bg-gray-100">
+            <button
+              onClick={() => setIsMenuOpen(false)}
+              className="rounded-full p-1 hover:bg-gray-100 transition-colors"
+            >
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex flex-col space-y-4">
-            <Button variant="ghost" className="justify-start hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); goToHome() }}>
+          <div className="flex flex-col space-y-2">
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200 py-3"
+              onClick={() => {
+                setIsMenuOpen(false)
+                goToHome()
+              }}
+            >
               Início
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100">
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200 py-3">
               Sobre nós
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100">
+            <Button variant="ghost" className="justify-start hover:bg-gray-100 transition-all duration-200 py-3">
               Professores
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100" onClick={() => { setIsMenuOpen(false); goToProfile() }}>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200 py-3"
+              onClick={() => {
+                setIsMenuOpen(false)
+                goToProfile()
+              }}
+            >
               Perfil
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100">
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200 py-3 bg-gray-100"
+            >
               Área do Aluno
             </Button>
-            <Button variant="ghost" className="justify-start hover:bg-gray-100 text-red-500" onClick={() => { setIsMenuOpen(false); handleLogout() }}>
+            <Button
+              variant="ghost"
+              className="justify-start hover:bg-gray-100 transition-all duration-200 py-3 text-red-500"
+              onClick={() => {
+                setIsMenuOpen(false)
+                handleLogout()
+              }}
+            >
               Sair
             </Button>
           </div>
@@ -288,12 +309,22 @@ export default function StudentArea() {
       </Dialog>
 
       {/* Days Carousel */}
-      <div className="days-carousel">
-        <div className="days-container">
+      <div className="bg-blue-700 p-4 overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
           {days.map((day, idx) => (
-            <div key={idx} className={`day-item ${day.isActive ? "active" : ""} ${day.color}`}>
-              <div className="day-name">{day.shortDay}</div>
-              <div className="day-number">{day.date}</div>
+            <div
+              key={idx}
+              className={`flex flex-col items-center justify-center rounded-xl p-3 min-w-[60px] ${day.isActive
+                  ? "bg-white text-blue-600 shadow-lg"
+                  : day.color === "bg-white"
+                    ? "bg-blue-600 text-white border border-blue-500"
+                    : day.color === "bg-red-300"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-green-100 text-green-600"
+                }`}
+            >
+              <div className="text-xs font-medium">{day.shortDay}</div>
+              <div className={`text-xl font-bold ${day.isActive ? "text-blue-600" : ""}`}>{day.date}</div>
             </div>
           ))}
         </div>
@@ -303,10 +334,10 @@ export default function StudentArea() {
       <div className="p-4">
         <Button
           variant="outline"
-          className="w-full bg-gray-300 hover:bg-gray-400 flex items-center justify-between py-3 rounded-md"
+          className="w-full bg-white text-blue-600 hover:bg-blue-50 flex items-center justify-between py-3 rounded-xl shadow-sm"
           onClick={() => setIsWorkoutDialogOpen(true)}
         >
-          <span>{selectedWorkout}</span>
+          <span className="font-bold">{selectedWorkout}</span>
           <ChevronDown className="h-5 w-5" />
         </Button>
       </div>
@@ -314,12 +345,13 @@ export default function StudentArea() {
       {/* Workout Selection Dialog */}
       <Dialog open={isWorkoutDialogOpen} onOpenChange={setIsWorkoutDialogOpen}>
         <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
-          <div className="flex flex-col space-y-2">
+          <h3 className="text-xl font-bold mb-4 text-gray-800">Selecionar Treino</h3>
+          <div className="flex flex-col space-y-1">
             {workouts.map((w) => (
               <Button
                 key={w.id}
                 variant="ghost"
-                className="justify-start hover:bg-gray-100"
+                className="justify-start hover:bg-gray-100 py-3 text-left"
                 onClick={() => handleWorkoutChange(w)}
               >
                 {w.name}
@@ -330,33 +362,55 @@ export default function StudentArea() {
       </Dialog>
 
       {/* Exercise List */}
-      <div className="flex-1 p-4 space-y-4 pb-20">
+      <div className="flex-1 bg-gray-50 text-gray-900 rounded-t-3xl px-4 py-6 space-y-4">
         {exercises.map((exercise) => (
-          <div key={exercise.id} className="exercise-card">
-            <div className="exercise-info">
-              <div className="exercise-name">{exercise.name}</div>
-              <div className="exercise-details">
-                {exercise.reps}×{exercise.sets} {exercise.weight}kg
-                <button className="edit-button" onClick={() => openEditDialog(exercise)}>
-                  <Edit2 className="h-4 w-4" />
+          <div
+            key={exercise.id}
+            className={`bg-white rounded-xl shadow-sm overflow-hidden border ${exercise.completed ? "border-green-200" : "border-gray-200"
+              }`}
+          >
+            <div className="p-4 flex justify-between items-center">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-800">{exercise.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-gray-600">
+                    {exercise.reps}×{exercise.sets}
+                  </span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
+                    {exercise.weight}kg
+                    <button className="ml-1 text-blue-600" onClick={() => openEditDialog(exercise)}>
+                      <Edit2 className="h-3 w-3 inline" />
+                    </button>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                <div
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${exercise.timerActive ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  onClick={() => toggleTimer(exercise.id)}
+                >
+                  <span className="font-mono font-medium">{formatTime(exercise.timerSeconds)}</span>
+                  <button
+                    className={`p-1 rounded-full ${exercise.timerActive ? "hover:bg-blue-500" : "hover:bg-gray-300"}`}
+                    onClick={(e) => resetTimer(exercise.id, e)}
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </button>
+                </div>
+
+                <button
+                  className={`px-4 py-2 rounded-lg font-medium ${exercise.completed
+                      ? "bg-green-100 text-green-600 hover:bg-green-200"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  onClick={() => toggleExerciseCompletion(exercise.id)}
+                >
+                  {exercise.completed ? "Concluído" : "Marcar como feito"}
                 </button>
               </div>
             </div>
-            <div className="exercise-actions-column">
-              <div className={`timer ${exercise.timerActive ? "active" : ""}`} onClick={() => toggleTimer(exercise.id)}>
-                <span>{formatTime(exercise.timerSeconds)}</span>
-                <button className="reset-button" onClick={(e) => resetTimer(exercise.id, e)}>
-                  <RefreshCw className="h-4 w-4" />
-                </button>
-              </div>
-              <button
-                className={`done-button ${exercise.completed ? "completed" : ""}`}
-                onClick={() => toggleExerciseCompletion(exercise.id)}
-              >
-                {exercise.completed ? "Concluído" : "Feito"}
-              </button>
-            </div>
-            <div className="exercise-image"></div>
           </div>
         ))}
       </div>
@@ -364,22 +418,26 @@ export default function StudentArea() {
       {/* Edit Weight Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-top-5 duration-300 bg-white">
-          <h3 className="text-lg font-medium mb-4">Editar Peso</h3>
-          <div className="space-y-4">
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="weight">Peso (kg)</label>
+          <h3 className="text-xl font-bold mb-6 text-gray-800">Editar Peso</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="weight" className="text-sm font-medium text-gray-700">
+                Peso (kg)
+              </label>
               <input
                 id="weight"
                 type="number"
                 value={newWeight}
                 onChange={(e) => setNewWeight(Number(e.target.value))}
-                className="border rounded-md p-2"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 min="0"
                 step="0.5"
               />
             </div>
             <div className="flex justify-end">
-              <Button onClick={saveWeight}>Salvar</Button>
+              <Button onClick={saveWeight} className="bg-blue-600 hover:bg-blue-700">
+                Salvar
+              </Button>
             </div>
           </div>
         </DialogContent>

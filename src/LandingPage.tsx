@@ -13,7 +13,6 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navigate = useNavigate()
 
-  // Refs para scroll
   const aboutRef = useRef<HTMLDivElement>(null)
   const teachersRef = useRef<HTMLDivElement>(null)
 
@@ -58,7 +57,7 @@ export default function LandingPage() {
   }
 
   const goToProfile = () => {
-    navigate("/login")
+    navigate("/profile")
   }
 
   const goToSchedule = () => {
@@ -271,7 +270,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 px-4 bg-blue-800 text-blue-200 text-center">
-        <p>© 2023 UniGym | Desenvolvido por Estudantes de Ciência da Computação</p>
+        <p>© 2025 UniGym | Desenvolvido por Estudantes de Ciência da Computação</p>
       </footer>
     </main>
   )

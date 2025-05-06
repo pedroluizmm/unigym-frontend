@@ -7,7 +7,6 @@ import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom"
 import "./SchedulePage.css"
 
-// importações das APIs
 import {
   getScheduleSlots,
   getScheduleGrid,
@@ -31,7 +30,7 @@ interface ScheduleData {
 interface ScheduleGridRow {
   id: string
   days: boolean[]
-  occupancy: number[] // 0-100 representando a % de ocupação
+  occupancy: number[] 
 }
 
 type PeriodType = "morning" | "afternoon" | "evening"
@@ -44,7 +43,6 @@ export default function SchedulePage() {
   const [isReservationDialogOpen, setIsReservationDialogOpen] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<{ row: string; col: number } | null>(null)
 
-  // estados de dados vindos do backend
   const [scheduleData, setScheduleData] = useState<ScheduleData>({
     morning: [],
     afternoon: [],
@@ -60,7 +58,7 @@ export default function SchedulePage() {
   const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
   const token = localStorage.getItem("token")!
 
-  // carregar dados iniciais
+
   useEffect(() => {
     if (!token) {
       navigate("/login")
@@ -87,7 +85,6 @@ export default function SchedulePage() {
     const slotKey = `${selectedPeriod}-${rowId}-${colIndex}`
 
     if (userReservations[slotKey]) {
-      // cancelar via API
       apiCancelReservation(token, selectedPeriod, rowId, colIndex)
         .then(() => {
           setUserReservations((prev) => {
@@ -97,7 +94,6 @@ export default function SchedulePage() {
           })
         })
         .catch(() => {
-          // opcional: mostrar erro
         })
       return
     }
@@ -117,7 +113,6 @@ export default function SchedulePage() {
         setSelectedSlot(null)
       })
       .catch(() => {
-        // opcional: mostrar erro
       })
   }
 

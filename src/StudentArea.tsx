@@ -7,7 +7,6 @@ import { Dialog, DialogContent } from "./components/ui/dialog"
 import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom"
 
-// Importações das APIs
 import { getWorkouts, getExercises, updateExercise } from "@/services/api"
 
 interface Exercise {
@@ -39,15 +38,11 @@ export default function StudentArea() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false)
 
-  // Lista de treinos vindo do backend
   const [workouts, setWorkouts] = useState<Workout[]>([])
-  // Nome do treino selecionado (para exibição)
   const [selectedWorkout, setSelectedWorkout] = useState("")
 
-  // Exercícios do treino selecionado
   const [exercises, setExercises] = useState<Exercise[]>([])
 
-  // Verificar se o usuário está logado
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
     if (!isLoggedIn) {
@@ -57,7 +52,6 @@ export default function StudentArea() {
 
   const token = localStorage.getItem("token")!
 
-  // Carregar lista de treinos e inicializar seleção
   useEffect(() => {
     getWorkouts(token)
       .then((ws) => {
@@ -73,15 +67,12 @@ export default function StudentArea() {
         }
       })
       .catch(() => {
-        // tratar erro de carregamento de treinos
       })
   }, [token])
 
-  // Função para carregar exercícios de um treino específico
   const loadExercises = (workoutId: string) => {
     getExercises(token, workoutId)
       .then((dtos) => {
-        // Converte cada ExerciseDTO no nosso tipo interno, adicionando timerActive e timerSeconds
         const loaded: Exercise[] = dtos.map((dto) => ({
           id: dto.id,
           name: dto.name,
@@ -95,11 +86,9 @@ export default function StudentArea() {
         setExercises(loaded)
       })
       .catch(() => {
-        // tratar erro de carregamento de exercícios
       })
   }
 
-  // Gerar dias do mês atual
   const generateDaysOfMonth = () => {
     const today = new Date()
     const currentMonth = today.getMonth()
@@ -136,7 +125,6 @@ export default function StudentArea() {
   const timerRefs = useRef<{ [key: number]: NodeJS.Timeout }>({})
 
   useEffect(() => {
-    // Limpar timers no desmontar
     return () => {
       Object.values(timerRefs.current).forEach((t) => clearInterval(t))
     }
@@ -183,9 +171,7 @@ export default function StudentArea() {
       prev.map((ex) => {
         if (ex.id !== id) return ex
         const updated = !ex.completed
-        // Persistir no backend
         updateExercise(token, id, { completed: updated }).catch(() => {
-          // tratar erro
         })
         return { ...ex, completed: updated }
       }),
@@ -210,13 +196,11 @@ export default function StudentArea() {
 
   const saveWeight = () => {
     if (editingExercise) {
-      // Atualizar local e backend
       updateExercise(token, editingExercise.id, { weight: newWeight })
         .then(() => {
           setExercises((prev) => prev.map((ex) => (ex.id === editingExercise.id ? { ...ex, weight: newWeight } : ex)))
         })
         .catch(() => {
-          // tratar erro
         })
     }
     setIsEditDialogOpen(false)

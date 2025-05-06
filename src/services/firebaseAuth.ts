@@ -21,7 +21,6 @@ export async function resetPassword(email: string): Promise<void> {
 }
 
 export async function verifyResetCode(code: string, newPassword: string): Promise<void> {
-  // confirma o código e muda a senha
   await confirmPasswordReset(auth, code, newPassword);
 }
 

@@ -1,223 +1,86 @@
-const BASE = import.meta.env.VITE_API_URL
+// src/services/api.ts
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
 
-export interface Achievement {
-  id: number
-  title: string
-  description: string
-  icon: string
-  unlocked: boolean
-  progress?: number
-  total?: number
-}
-export interface TimeSlot {
-  id: string
-  start: string
-  end: string
-}
-export interface ScheduleGridRow {
-  id: string
-  days: boolean[]
-  occupancy: number[]
-}
-export interface Workout {
-  id: string
-  name: string
-}
-export interface ExerciseDTO {
-  id: number
-  name: string
-  sets: number
-  reps: number
-  weight: number
-  completed: boolean
-}
+// instancia do Axios
+const api: AxiosInstance = axios.create({
+  baseURL: '/api'
+})
 
-// --- Autenticação ---
-export async function login(email: string, senha: string): Promise<{ token: string }> {
-  const res = await fetch(`${BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, senha }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as any).message || "Credenciais inválidas");
-  return data as { token: string };
-}
-
-export async function register(
-  email: string,
-  senha: string,
+// (Opcional) Defina suas interfaces de dado
+export interface Usuario {
+  _id: string
   nome: string
-): Promise<{ token: string }> {
-  const res = await fetch(`${BASE}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nome, email, senha }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as any).message || "Erro no cadastro");
-  return data as { token: string };
+  email: string
+  // …
 }
+export interface Treino { /* … */ }
+export interface Exercicio { /* … */ }
+// etc…
 
-export async function forgotPassword(email: string): Promise<void> {
-  const res = await fetch(`${BASE}/auth/forgot-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Erro ao enviar código");
-}
+// Usuários
+export const listUsers = (): Promise<AxiosResponse<Usuario[]>> =>
+  api.get('/usuarios')
 
-export async function verifyCode(email: string, code: string): Promise<{ token: string }> {
-  const res = await fetch(`${BASE}/auth/verify-code`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, code }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as any).message || "Código inválido");
-  return data as { token: string };
-}
+export const getUser = (id: string): Promise<AxiosResponse<Usuario>> =>
+  api.get(`/usuarios/${id}`)
 
-// --- Perfil do usuário ---
-export async function getProfile(token: string) {
-  const res = await fetch(`${BASE}/usuario/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Perfil indisponível");
-  return res.json();
-}
+export const createUser = (data: Partial<Usuario>): Promise<AxiosResponse<Usuario>> =>
+  api.post('/usuarios', data)
 
-export async function updateProfile(token: string, body: any) {
-  const res = await fetch(`${BASE}/usuario/me`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("Erro ao atualizar perfil");
-  return res.json();
-}
+export const updateUser = (
+  id: string,
+  data: Partial<Usuario>
+): Promise<AxiosResponse<Usuario>> =>
+  api.put(`/usuarios/${id}`, data)
 
-// --- Workouts & Exercises ---
-export interface Workout { id: string; name: string; }
-export interface ExerciseDTO {
-  id: number;
-  name: string;
-  sets: number;
-  reps: number;
-  weight: number;
-  completed: boolean;
-}
+export const deleteUser = (id: string): Promise<AxiosResponse<void>> =>
+  api.delete(`/usuarios/${id}`)
 
-export async function getWorkouts(token: string): Promise<Workout[]> {
-  const res = await fetch(`${BASE}/workouts`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Falha ao carregar treinos");
-  return res.json();
-}
+export const validateEmail = (userId: string): Promise<AxiosResponse<Usuario>> =>
+  api.put(`/usuarios/${userId}/validate-email`)
 
-export async function getExercises(
-  token: string,
-  workoutId: string
-): Promise<ExerciseDTO[]> {
-  const res = await fetch(`${BASE}/workouts/${workoutId}/exercises`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Falha ao carregar exercícios");
-  return res.json();
-}
+// Treinos
+export const fetchWorkouts = (): Promise<AxiosResponse<Treino[]>> =>
+  api.get('/treinos')
 
-export async function updateExercise(
-  token: string,
-  exerciseId: number,
-  data: Partial<Pick<ExerciseDTO, "completed" | "weight">>
-): Promise<ExerciseDTO> {
-  const res = await fetch(`${BASE}/exercises/${exerciseId}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Falha ao atualizar exercício");
-  return res.json();
-}
+export const completeExercise = (
+  exerciseLog: { treinoId: string; exercicioId: string; feito: boolean }
+): Promise<AxiosResponse<any>> =>
+  api.post('/treino-exercicios/complete', exerciseLog)
 
-// ——— Conquistas ———
-export async function getAchievements(token: string): Promise<Achievement[]> {
-  const res = await fetch(`${BASE}/achievements`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error("Falha ao carregar conquistas")
-  return res.json()
-}
+// Exercícios
+export const fetchExercises = (): Promise<AxiosResponse<Exercicio[]>> =>
+  api.get('/exercicios')
 
-// ——— Horários ———
-export async function getScheduleSlots(token: string): Promise<{
-  morning: TimeSlot[]
-  afternoon: TimeSlot[]
-  evening: TimeSlot[]
-}> {
-  const res = await fetch(`${BASE}/schedule/slots`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error("Falha ao carregar horários")
-  return res.json()
-}
+// Histórico de treinos
+export const fetchHistory = (): Promise<AxiosResponse<any>> =>
+  api.get('/historicos')
 
-export async function getScheduleGrid(
-  token: string
-): Promise<Record<"morning" | "afternoon" | "evening", ScheduleGridRow[]>> {
-  const res = await fetch(`${BASE}/schedule/grid`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error("Falha ao carregar grade de horários")
-  return res.json()
-}
+// FAQ e Dicas
+export const fetchFaq = (): Promise<AxiosResponse<any>> =>
+  api.get('/faq')
+export const fetchDicas = (): Promise<AxiosResponse<any>> =>
+  api.get('/dicas')
 
-export async function getUserReservations(token: string): Promise<{ [key: string]: boolean }> {
-  const res = await fetch(`${BASE}/reservations`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error("Falha ao carregar suas reservas")
-  return res.json()
-}
+// Gamificação
+export const addConquista = (
+  usuarioId: string,
+  conquistaId: string
+): Promise<AxiosResponse<any>> =>
+  api.post('/usuario-conquistas', { usuarioId, conquistaId })
 
-export async function reserveSlot(
-  token: string,
-  period: string,
-  row: string,
-  col: number
-): Promise<void> {
-  const res = await fetch(`${BASE}/reservations`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ period, row, col }),
-  })
-  if (!res.ok) throw new Error("Falha ao reservar horário")
-}
+export const fetchConquistas = (usuarioId: string): Promise<AxiosResponse<any>> =>
+  api.get(`/usuario-conquistas/${usuarioId}`)
 
-export async function cancelReservation(
-  token: string,
-  period: string,
-  row: string,
-  col: number
-): Promise<void> {
-  const res = await fetch(`${BASE}/reservations`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ period, row, col }),
-  })
-  if (!res.ok) throw new Error("Falha ao cancelar reserva")
-}
+// IA (stubs)
+export const sugestaoAlongamento = (
+  grupoMuscular: string
+): Promise<AxiosResponse<string>> =>
+  api.post('/ia/alongamento', { grupoMuscular })
+
+export const descricaoExercicio = (
+  nomeExercicio: string
+): Promise<AxiosResponse<string>> =>
+  api.post('/ia/descricao-exercicio', { nomeExercicio })
+
+export default api

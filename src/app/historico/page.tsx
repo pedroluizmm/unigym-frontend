@@ -1,148 +1,166 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { getHistorico, type Historico } from "@/services/api"
+
 export default function HistoricoPage() {
+  const [data, setData] = useState<Historico[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    ; (async () => {
+      try {
+        setLoading(true)
+        const res = await getHistorico()
+        setData(res.data.sort((a, b) => new Date(b.dataRealizacao).getTime() - new Date(a.dataRealizacao).getTime()))
+      } catch (err: any) {
+        console.error(err)
+        setError("Falha ao carregar histórico")
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <p className="text-blue-600 font-medium">Carregando histórico…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-red-200">
+          <p className="text-red-600 font-medium">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const recentes = data.slice(0, 3)
+
+  const totalTreinos = data.length
+  const totalExercicios = data.reduce((sum, h) => sum + (h.treino.exercicios || 0), 0)
+  const totalCalorias = data.reduce((sum, h) => sum + (h.treino.calorias || 0), 0)
+  const tempoDisplay = `${Math.floor(totalCalorias / 60)}h`  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm p-4 flex items-center">
-        <a href="/dashboard" className="mr-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-gray-500"
-          >
-            <path d="m12 19-7-7 7-7" />
-            <path d="M19 12H5" />
+      <header className="bg-white shadow-sm border-b border-gray-200 p-4 flex items-center sticky top-0 z-10">
+        <a href="/dashboard" className="mr-4 p-2 rounded-full text-blue-600">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </a>
-        <h1 className="text-xl font-bold text-gray-800">Histórico</h1>
+        <h1 className="text-xl font-bold text-blue-600">Histórico</h1>
       </header>
 
-      <main className="flex-1 p-4">
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Progresso</h2>
-          <div className="h-48 bg-gray-100 rounded flex items-center justify-center mb-4">
-            <p className="text-gray-500">Gráfico de progresso</p>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <button className="p-2 rounded-full hover:bg-gray-100">
+      <main className="flex-1 p-4 space-y-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-bold mb-4 text-gray-900">Progresso</h2>
+          <div className="h-48 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center mb-4 border border-blue-200">
+            <div className="text-center">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
+                className="w-16 h-16 text-blue-400 mx-auto mb-2"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-500"
-              >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
-            <div className="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
                 viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-blue-600 mr-2"
               >
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                <line x1="16" x2="16" y1="2" y2="6" />
-                <line x1="8" x2="8" y1="2" y2="6" />
-                <line x1="3" x2="21" y1="10" y2="10" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
-              <span className="font-medium">Maio 2025</span>
+              <p className="text-blue-600 font-medium">Gráfico de progresso</p>
             </div>
-            <button className="p-2 rounded-full hover:bg-gray-100">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-500"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Atividades Recentes</h2>
-
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-bold mb-4 text-gray-900">Atividades Recentes</h2>
           <div className="space-y-4">
-            <div className="border-l-4 border-blue-600 pl-3 py-1">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">Treino A - Peito e Tríceps</h3>
-                <span className="text-sm text-gray-500">Hoje</span>
-              </div>
-              <p className="text-sm text-gray-600">8 exercícios • 45 min • 320 kcal</p>
-            </div>
+            {recentes.length > 0 ? (
+              recentes.map((h) => {
+                const date = new Date(h.dataRealizacao)
+                const diff = Date.now() - date.getTime()
+                let label = "Há pouco"
+                if (diff > 86400000 && diff < 172800000) label = "Ontem"
+                else if (diff >= 172800000) label = `${Math.floor(diff / 86400000)} dias atrás`
 
-            <div className="border-l-4 border-green-500 pl-3 py-1">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">Treino C - Pernas</h3>
-                <span className="text-sm text-gray-500">Ontem</span>
+                return (
+                  <div key={h._id} className="border-l-4 border-blue-600 pl-4 py-3 bg-blue-50 rounded-r-xl">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-gray-900">{h.treino.nome}</h3>
+                      <span className="text-sm text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">
+                        {label}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span className="text-blue-600 font-medium bg-white px-2 py-1 rounded-full">
+                        {h.treino.exercicios} exercícios
+                      </span>
+                      <span className="text-blue-600 font-medium bg-white px-2 py-1 rounded-full">
+                        {h.treino.tempo}
+                      </span>
+                      <span className="text-blue-600 font-medium bg-white px-2 py-1 rounded-full">
+                        {h.treino.calorias} kcal
+                      </span>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <p className="text-blue-600 font-medium">Nenhuma atividade recente</p>
+                <p className="text-blue-400 mt-1">Comece um treino para ver seu histórico aqui</p>
               </div>
-              <p className="text-sm text-gray-600">6 exercícios • 50 min • 450 kcal</p>
-            </div>
-
-            <div className="border-l-4 border-purple-500 pl-3 py-1">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">Treino B - Costas e Bíceps</h3>
-                <span className="text-sm text-gray-500">3 dias atrás</span>
-              </div>
-              <p className="text-sm text-gray-600">7 exercícios • 40 min • 380 kcal</p>
-            </div>
+            )}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h2 className="text-lg font-semibold mb-4">Estatísticas</h2>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Total de Treinos</p>
-              <p className="text-2xl font-bold text-blue-600">24</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-bold mb-4 text-gray-900">Estatísticas</h2>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+              <p className="text-sm text-blue-600 font-medium mb-1">Total de Treinos</p>
+              <p className="text-2xl font-bold text-blue-700">{totalTreinos}</p>
             </div>
-
-            <div className="bg-green-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Calorias Queimadas</p>
-              <p className="text-2xl font-bold text-green-600">9.840</p>
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+              <p className="text-sm text-green-600 font-medium mb-1">Calorias Queimadas</p>
+              <p className="text-2xl font-bold text-green-700">{totalCalorias}</p>
             </div>
-
-            <div className="bg-purple-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Tempo Total</p>
-              <p className="text-2xl font-bold text-purple-600">18h</p>
+            <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+              <p className="text-sm text-purple-600 font-medium mb-1">Tempo Total</p>
+              <p className="text-2xl font-bold text-purple-700">{tempoDisplay}</p>
             </div>
-
-            <div className="bg-orange-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Exercícios</p>
-              <p className="text-2xl font-bold text-orange-600">168</p>
+            <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
+              <p className="text-sm text-orange-600 font-medium mb-1">Exercícios</p>
+              <p className="text-2xl font-bold text-orange-700">{totalExercicios}</p>
             </div>
           </div>
 
           <a
             href="/perfil"
-            className="block w-full bg-blue-600 text-white text-center font-medium rounded-md py-3 mt-6 hover:bg-blue-700 transition-colors"
+            className="block w-full bg-blue-600 text-white text-center font-bold rounded-xl py-4 shadow-sm"
           >
             Ver Perfil Completo
           </a>

@@ -1,9 +1,12 @@
 "use client"
 
+import { useState } from "react"
+
 export default function FaqDicasPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
   const toggleFaq = (index: number) => {
-    // Esta função seria implementada com estado em uma aplicação real
-    console.log("Toggle FAQ", index)
+    setOpenFaq(openFaq === index ? null : index)
   }
 
   const faqs = [
@@ -34,23 +37,53 @@ export default function FaqDicasPage() {
       title: "Hidratação adequada",
       content:
         "Beba água antes, durante e após o treino. A hidratação adequada melhora o desempenho e ajuda na recuperação muscular.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+          />
+        </svg>
+      ),
     },
     {
       title: "Aquecimento é essencial",
       content:
         "Dedique 5-10 minutos para aquecer antes do treino principal. Isso prepara seus músculos e articulações, reduzindo o risco de lesões.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      ),
     },
     {
       title: "Qualidade sobre quantidade",
       content:
         "Foque na execução correta dos exercícios em vez de aumentar o peso ou repetições. A técnica adequada maximiza os resultados e previne lesões.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
     },
   ]
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm p-4 flex items-center">
-        <a href="/conquistas" className="mr-4">
+      <header className="bg-white shadow-sm border-b border-gray-200 p-4 flex items-center sticky top-0 z-10">
+        <a href="/conquistas" className="mr-4 p-2 rounded-full text-blue-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -61,24 +94,25 @@ export default function FaqDicasPage() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-gray-500"
+            className="h-6 w-6"
           >
             <path d="m12 19-7-7 7-7" />
             <path d="M19 12H5" />
           </svg>
         </a>
-        <h1 className="text-xl font-bold text-gray-800">FAQ e Dicas</h1>
+        <h1 className="text-xl font-bold text-blue-600">FAQ e Dicas</h1>
       </header>
 
-      <main className="flex-1 p-4">
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Perguntas Frequentes</h2>
+      <main className="flex-1 p-4 space-y-6">
+        {/* Perguntas Frequentes */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-bold mb-4 text-gray-900">Perguntas Frequentes</h2>
 
           <div className="space-y-3">
             {faqs.map((faq, index) => (
-              <div key={index} className="border rounded-lg overflow-hidden">
+              <div key={index} className="border border-gray-200 rounded-xl overflow-hidden">
                 <button
-                  className="w-full flex items-center justify-between p-4 text-left font-medium"
+                  className="w-full flex items-center justify-between p-4 text-left font-bold text-gray-900 bg-gray-50"
                   onClick={() => toggleFaq(index)}
                 >
                   {faq.question}
@@ -92,50 +126,35 @@ export default function FaqDicasPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-500 transition-transform"
+                    className={`text-blue-600 transition-transform ${openFaq === index ? "rotate-180" : ""}`}
                   >
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </button>
-                <div className="p-4 pt-0 text-gray-600 text-sm">{faq.answer}</div>
+                {openFaq === index && (
+                  <div className="p-4 text-gray-600 leading-relaxed bg-white border-t border-gray-200">
+                    {faq.answer}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h2 className="text-lg font-semibold mb-4">Dicas de Treino</h2>
+        {/* Dicas de Treino */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-bold mb-4 text-gray-900">Dicas de Treino</h2>
 
           <div className="space-y-4">
             {dicas.map((dica, index) => (
-              <div key={index} className="bg-blue-50 rounded-lg p-4">
+              <div key={index} className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                 <div className="flex items-start">
-                  <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-blue-600"
-                    >
-                      <path d="M12 2v8" />
-                      <path d="m4.93 10.93 1.41 1.41" />
-                      <path d="M2 18h2" />
-                      <path d="M20 18h2" />
-                      <path d="m19.07 10.93-1.41 1.41" />
-                      <path d="M22 22H2" />
-                      <path d="m16 6-4 4-4-4" />
-                      <path d="M16 18a4 4 0 0 0-8 0" />
-                    </svg>
+                  <div className="bg-blue-100 p-3 rounded-xl mr-4 border border-blue-200">
+                    <div className="text-blue-600">{dica.icon}</div>
                   </div>
-                  <div>
-                    <h3 className="font-medium mb-1">{dica.title}</h3>
-                    <p className="text-sm text-gray-600">{dica.content}</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold mb-2 text-blue-700">{dica.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{dica.content}</p>
                   </div>
                 </div>
               </div>
@@ -144,7 +163,7 @@ export default function FaqDicasPage() {
 
           <a
             href="/dashboard"
-            className="block w-full bg-blue-600 text-white text-center font-medium rounded-md py-3 mt-6 hover:bg-blue-700 transition-colors"
+            className="block w-full bg-blue-600 text-white text-center font-bold rounded-xl py-4 mt-6 shadow-sm"
           >
             Voltar ao Dashboard
           </a>

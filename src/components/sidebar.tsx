@@ -1,87 +1,119 @@
-"use client"
+"use client";
 
-import { Link } from 'react-router-dom'
-import { Home, Dumbbell, History, User, Award, HelpCircle, X } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Home,
+  Dumbbell,
+  History,
+  User,
+  Award,
+  HelpCircle,
+  LogOut,
+  X,
+} from "lucide-react";
 
 interface SidebarProps {
-  open: boolean
-  setOpen: (open: boolean) => void
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  user?: { nome: string; role?: string };
 }
 
-export function Sidebar({ open, setOpen }: SidebarProps) {
+export function Sidebar({ open, setOpen, user }: SidebarProps) {
+  const navigate = useNavigate();
+
+  const initials = user?.nome
+    ? user.nome
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
+    : "US";
+
+  const menuItems = [
+    { to: "/dashboard", icon: Home, label: "Dashboard" },
+    { to: "/treino", icon: Dumbbell, label: "Treinos" },
+    { to: "/historico", icon: History, label: "Histórico" },
+    { to: "/perfil", icon: User, label: "Perfil" },
+    { to: "/conquistas", icon: Award, label: "Conquistas" },
+    { to: "/faq-dicas", icon: HelpCircle, label: "FAQ e Dicas" },
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/", { replace: true });
+  };
+
   return (
     <>
-      {/* Overlay */}
-      {open && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" onClick={() => setOpen(false)} />}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-      {/* Sidebar */}
       <div
         className={`
-        fixed top-0 left-0 h-full w-64 bg-blue-600 text-white z-30 transform transition-transform duration-300 ease-in-out
-        ${open ? "translate-x-0" : "-translate-x-full"}
-        md:relative md:translate-x-0
-      `}
+          fixed top-0 left-0 h-screen w-64 sm:w-72 lg:w-64
+          bg-white border-r border-gray-200 z-30 transform transition-transform duration-300 ease-in-out shadow-lg flex flex-col
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:relative lg:translate-x-0 lg:shadow-none
+        `}
       >
-        <div className="p-4 flex justify-between items-center border-b border-blue-500">
-          <h1 className="text-xl font-bold">UniGym</h1>
-          <button onClick={() => setOpen(false)} className="p-1 rounded-md hover:bg-blue-500 md:hidden">
-            <X className="h-6 w-6" />
+        <div className="p-4 sm:p-6 flex justify-between items-center border-b border-gray-200 bg-blue-600">
+          <h1 className="text-lg sm:text-xl font-bold text-white">UniGym</h1>
+          <button onClick={() => setOpen(false)} className="p-1 rounded-md text-white lg:hidden">
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link to="/dashboard" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <Home className="h-5 w-5 mr-3" />
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link to="/exercicio" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <Dumbbell className="h-5 w-5 mr-3" />
-                Exercícios
-              </Link>
-            </li>
-            <li>
-              <Link to="/historico" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <History className="h-5 w-5 mr-3" />
-                Histórico
-              </Link>
-            </li>
-            <li>
-              <Link to="/perfil" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <User className="h-5 w-5 mr-3" />
-                Perfil
-              </Link>
-            </li>
-            <li>
-              <Link to="/conquistas" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <Award className="h-5 w-5 mr-3" />
-                Conquistas
-              </Link>
-            </li>
-            <li>
-              <Link to="/faq-dicas" className="flex items-center p-2 rounded-md hover:bg-blue-500">
-                <HelpCircle className="h-5 w-5 mr-3" />
-                FAQ e Dicas
-              </Link>
-            </li>
+        <nav className="p-3 sm:p-4 flex-1 overflow-y-auto">
+          <ul className="space-y-1 sm:space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    className="flex items-center p-2 sm:p-3 rounded-xl text-gray-700 font-medium border border-transparent hover:bg-gray-50 transition-colors"
+                    onClick={() => window.innerWidth < 1024 && setOpen(false)}
+                  >
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50 border border-blue-100 mr-2 sm:mr-3 flex-shrink-0">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    </div>
+                    <span className="text-sm sm:text-base">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-500">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-bold">MS</span>
+        <div className="mt-auto border-t border-gray-200 bg-gray-50">
+          <div className="p-3 sm:p-4">
+            <div className="flex items-center p-2 sm:p-3 rounded-xl bg-white border border-gray-200 mb-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 border border-blue-200">
+                <span className="text-blue-600 font-bold text-sm sm:text-base">{initials}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{user?.nome || "Usuário"}</p>
+                <p className="text-xs sm:text-sm text-blue-600 font-medium">{user?.role || "Aluno"}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Maria Silva</p>
-              <p className="text-sm text-blue-200">Aluno</p>
-            </div>
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full p-2 sm:p-3 rounded-xl text-gray-700 font-medium border border-transparent hover:bg-red-50 hover:text-red-700 transition-colors"
+            >
+              <div className="p-1.5 sm:p-2 rounded-lg bg-red-50 border border-red-100 mr-2 sm:mr-3 flex-shrink-0">
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+              </div>
+              <span className="text-sm sm:text-base">Sair</span>
+            </button>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }

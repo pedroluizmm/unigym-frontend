@@ -1,192 +1,156 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import {
+  getMyProfile,
+  getConquistas,
+  getUsuarioConquistas,
+  type Conquista,
+  type UsuarioConquista,
+} from "@/services/api"
+
 export default function ConquistasPage() {
+  const [conquistas, setConquistas] = useState<Conquista[]>([])
+  const [userConqs, setUserConqs] = useState<UsuarioConquista[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        setLoading(true)
+        const perfil = await getMyProfile()
+        const userId = perfil.data._id
+        const [all, mine] = await Promise.all([getConquistas(), getUsuarioConquistas(userId)])
+
+        setConquistas(all.data)
+        setUserConqs(mine.data)
+      } catch (err: any) {
+        console.error(err)
+        setError("Erro ao carregar conquistas")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAll()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <p className="text-blue-600 font-medium">Carregando conquistas…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-red-200">
+          <p className="text-red-600 font-medium">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const total = conquistas.length
+  const unlocked = userConqs.length
+  const percent = Math.round((unlocked / total) * 100)
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm p-4 flex items-center">
-        <a href="/perfil" className="mr-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-gray-500"
-          >
-            <path d="m12 19-7-7 7-7" />
-            <path d="M19 12H5" />
+      <header className="bg-white shadow-sm border-b border-gray-200 p-4 flex items-center sticky top-0 z-10">
+        <a href="/dashboard" className="mr-4 p-2 rounded-full text-blue-600">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </a>
-        <h1 className="text-xl font-bold text-gray-800">Conquistas</h1>
+        <h1 className="text-xl font-bold text-blue-600">Conquistas</h1>
       </header>
 
-      <main className="flex-1 p-4">
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <main className="flex-1 p-4 space-y-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Resumo</h2>
-            <div className="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-blue-600 mr-1"
-              >
-                <path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.11" />
-                <circle cx="12" cy="8" r="7" />
-              </svg>
-              <span className="font-medium">12/30</span>
-            </div>
+            <h2 className="text-lg font-bold text-gray-900">Resumo</h2>
+            <span className="text-blue-600 font-bold text-lg bg-blue-50 px-3 py-1 rounded-full">
+              {unlocked}/{total}
+            </span>
           </div>
-
           <div className="h-4 bg-gray-200 rounded-full mb-4">
-            <div className="h-4 bg-blue-600 rounded-full" style={{ width: "40%" }}></div>
+            <div
+              className="h-4 bg-blue-600 rounded-full transition-all duration-300"
+              style={{ width: `${percent}%` }}
+            />
           </div>
-
-          <p className="text-sm text-gray-600">
-            Você conquistou 12 de 30 conquistas disponíveis. Continue se exercitando para desbloquear mais!
+          <p className="text-gray-600 leading-relaxed">
+            Você conquistou <span className="font-bold text-blue-600">{unlocked}</span> de{" "}
+            <span className="font-bold text-blue-600">{total}</span> conquistas. Continue se exercitando para
+            desbloquear mais!
           </p>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-600">
-            <div className="flex items-start">
-              <div className="bg-blue-100 p-2 rounded-lg mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-blue-600"
-                >
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <path d="M12 18v-6" />
-                  <path d="M8 18v-1" />
-                  <path d="M16 18v-3" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium">Iniciante Dedicado</h3>
-                <p className="text-sm text-gray-600 mb-2">Complete 10 treinos</p>
-                <div className="flex items-center">
-                  <div className="h-2 bg-blue-600 rounded-full w-full mr-2"></div>
-                  <span className="text-xs font-medium text-blue-600">10/10</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {conquistas.map((c) => {
+            const done = userConqs.some((uc) => uc.conquista._id === c._id)
+            const prog = done ? 100 : 0
 
-          <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
-            <div className="flex items-start">
-              <div className="bg-green-100 p-2 rounded-lg mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-green-600"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" x2="12" y1="8" y2="16" />
-                  <line x1="8" x2="16" y1="12" y2="12" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium">Consistência é Tudo</h3>
-                <p className="text-sm text-gray-600 mb-2">Treine 5 semanas consecutivas</p>
-                <div className="flex items-center">
-                  <div className="h-2 bg-green-500 rounded-full w-3/5 mr-2"></div>
-                  <span className="text-xs font-medium text-green-600">3/5</span>
+            return (
+              <div
+                key={c._id}
+                className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border border-gray-200 ${done ? "border-l-blue-600" : "border-l-gray-300"
+                  }`}
+              >
+                <div className="flex items-start">
+                  <div className={`p-3 rounded-xl mr-4 ${done ? "bg-blue-100" : "bg-gray-100"}`}>
+                    {c.iconeUrl ? (
+                      <img src={c.iconeUrl || "/placeholder.svg"} className="h-8 w-8" alt={c.nome} />
+                    ) : (
+                      <svg
+                        className={`h-8 w-8 ${done ? "text-blue-600" : "text-gray-400"}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`font-bold text-lg mb-2 ${done ? "text-blue-600" : "text-gray-900"}`}>{c.nome}</h3>
+                    <p className="text-gray-600 mb-4 leading-relaxed">{c.descricao}</p>
+                    <div className="flex items-center">
+                      <div className="flex-1 h-3 bg-gray-200 rounded-full mr-3">
+                        <div
+                          className={`h-3 rounded-full transition-all duration-300 ${done ? "bg-blue-600" : "bg-gray-300"
+                            }`}
+                          style={{ width: `${prog}%` }}
+                        />
+                      </div>
+                      <span
+                        className={`text-sm font-bold px-2 py-1 rounded-full ${done ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100"
+                          }`}
+                      >
+                        {prog}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500">
-            <div className="flex items-start">
-              <div className="bg-purple-100 p-2 rounded-lg mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-purple-600"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium">Maratonista</h3>
-                <p className="text-sm text-gray-600 mb-2">Acumule 10 horas de treino</p>
-                <div className="flex items-center">
-                  <div className="h-2 bg-purple-500 rounded-full w-4/5 mr-2"></div>
-                  <span className="text-xs font-medium text-purple-600">8/10</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-gray-400">
-            <div className="flex items-start">
-              <div className="bg-gray-100 p-2 rounded-lg mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-600"
-                >
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                  <path d="M6 8h-1a4 4 0 0 0 0 8h1" />
-                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <path d="M16 18v2a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2" />
-                  <path d="M8 12h8" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium">Mestre dos Pesos</h3>
-                <p className="text-sm text-gray-600 mb-2">Aumente sua carga em 50% em qualquer exercício</p>
-                <div className="flex items-center">
-                  <div className="h-2 bg-gray-400 rounded-full w-1/4 mr-2"></div>
-                  <span className="text-xs font-medium text-gray-600">25%</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            )
+          })}
         </div>
 
         <a
           href="/faq-dicas"
-          className="block w-full bg-blue-600 text-white text-center font-medium rounded-md py-3 mt-6 hover:bg-blue-700 transition-colors"
+          className="block w-full bg-blue-600 text-white text-center font-bold rounded-xl py-4 shadow-sm"
         >
           Ver Dicas e FAQ
         </a>

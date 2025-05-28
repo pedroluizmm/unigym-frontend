@@ -10,12 +10,12 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx", // <- React 17+ JSX
+    "jsx": "react-jsx",  
     "strict": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "baseUrl": "src", // agora baseUrl aponta para src
+    "baseUrl": "src", 
     "paths": {
       "@/*": [
         "*"
@@ -23,7 +23,7 @@
     }
   },
   "include": [
-    "src", // todo o seu código
-    "vite-env.d.ts" // inclui o typings do Vite
+    "src",  
+    "vite-env.d.ts" 
   ]
 }

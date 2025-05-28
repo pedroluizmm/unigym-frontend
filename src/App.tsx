@@ -1,14 +1,14 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
-// Import das páginas conforme sua estrutura em src/app
 import LandingPage from './app/page'
 import MenuPage from './app/menu/page'
 import VerificacaoEmailPage from './app/verificacao-email/page'
 import CadastroPage from './app/cadastro/page'
 import LoginPage from './app/login/page'
+import RecuperarSenhaPage from './app/recuperar-senha/page'
 import DashboardPage from './app/dashboard/page'
-import ExercicioPage from './app/exercicio/page'
+import ExerciciosPage from './app/treino/page'
+import ExercicioPage from './app/treino/exercicio/page'
 import HistoricoPage from './app/historico/page'
 import PerfilPage from './app/perfil/page'
 import ConquistasPage from './app/conquistas/page'
@@ -23,8 +23,10 @@ export default function App() {
         <Route path="/verificacao-email" element={<VerificacaoEmailPage />} />
         <Route path="/cadastro" element={<CadastroPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/exercicio" element={<ExercicioPage />} />
+        <Route path="/treino" element={<ExerciciosPage />} />
+        <Route path="/treino/exercicio/:id" element={<ExercicioPage />} />
         <Route path="/historico" element={<HistoricoPage />} />
         <Route path="/perfil" element={<PerfilPage />} />
         <Route path="/conquistas" element={<ConquistasPage />} />

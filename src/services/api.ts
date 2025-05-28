@@ -1,23 +1,164 @@
-// src/services/api.ts
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-
-// instancia do Axios
 const api: AxiosInstance = axios.create({
-  baseURL: '/api'
+  baseURL: 'http://localhost:3000/api'
 })
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  console.log('>> Bearer token (front):', token);
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  console.log('>> Axios config:', config);
+  return config;
+});
 
-// (Opcional) Defina suas interfaces de dado
 export interface Usuario {
+  _id: string;
+  nome: string;
+  email: string;
+  senha: string;
+  telefone?: string;
+  dataNascimento?: string;
+  altura?: number;
+  peso?: number;
+  objetivo?: string;
+  diasTreino?: string[];
+  duracaoTreino?: string;
+  focoTreino?: string;
+  idade?: number;
+  statusValidacao?: boolean;
+}
+export interface Conquista {
   _id: string
   nome: string
-  email: string
-  // …
+  descricao?: string
+  iconeUrl?: string
 }
-export interface Treino { /* … */ }
-export interface Exercicio { /* … */ }
-// etc…
 
-// Usuários
+export interface UsuarioConquista {
+  _id: string
+  conquista: Conquista
+  data: string
+}
+export interface TreinoModel {
+  _id: string
+  usuario: string
+  data: string         
+  grupamentoMuscular: string
+  statusTreino: 'pendente' | 'concluído'
+}
+export interface Treino {
+  id: string
+  nome: string
+  exercicios: number
+  tempo: string
+}
+export interface Exercicio {
+  _id: string
+  nome: string
+  descricao?: string
+  grupoMuscular: string
+  videoUrl?: string
+  imagemUrl?: string
+}
+
+export interface TreinoExercicio {
+  _id: string
+  exercicio: Exercicio
+  series: number
+  repeticoes: number
+  cargaRecomendada?: number
+  tempoIntervalo?: string
+  feito: boolean
+}
+
+export interface Progresso {
+  treinos: number
+  calorias: number
+  tempo: string
+}
+
+export interface ProximoTreino {
+  nome: string
+  horario: string
+}
+export interface TreinoExercicio {
+  _id: string;
+  treino: {
+    _id: string;
+    usuario: string;
+    grupamentoMuscular: string;
+    data: string;
+    statusTreino: 'pendente' | 'concluído';
+  };
+  exercicio: Exercicio;
+  series: number;
+  repeticoes: number;
+  cargaRecomendada?: number;
+  tempoIntervalo?: string;
+  feito: boolean;
+}
+export interface Historico {
+  _id: string;
+  treino: {
+    _id: string;
+    nome: string;
+    exercicios: number;
+    tempo: string;
+    calorias?: number;
+  };
+  dataRealizacao: string;
+  tempoTotal?: string;
+  observacoes?: string;
+  feedback?: string;
+}
+
+export const requestPasswordReset = (email: string) =>
+  api.post('/usuarios/recuperar-senha', { email });
+
+export const verifyResetCode = (email: string, code: string) =>
+  api.post('/usuarios/recuperar-senha/codigo', { email, code });
+
+export const resetPassword = (email: string, senha: string) =>
+  api.post('/usuarios/recuperar-senha/nova-senha', { email, senha });
+
+export const getTreinos = (): Promise<AxiosResponse<TreinoModel[]>> =>
+  api.get('/treinos')
+
+export const getTreinoExercicios = (treinoId: string): Promise<AxiosResponse<TreinoExercicio[]>> =>
+  api.get(`/treinoExercicio?treino=${treinoId}`)
+export const getTreinoExercicio = (id: string): Promise<AxiosResponse<TreinoExercicio>> =>
+  api.get(`/treinoExercicio/${id}`)
+export const updateTreino = (
+  id: string,
+  data: Partial<{
+    grupamentoMuscular: string
+    data: string
+    statusTreino: 'pendente' | 'concluído'
+  }>
+): Promise<AxiosResponse<TreinoModel>> =>
+  api.put(`/treinos/${id}`, data)
+export const getHistorico = (): Promise<AxiosResponse<Historico[]>> =>
+  api.get('/historicos');
+export const getConquistas = (): Promise<AxiosResponse<Conquista[]>> =>
+  api.get('/conquistas')
+export const getUsuarioConquistas = (usuarioId: string): Promise<AxiosResponse<UsuarioConquista[]>> =>
+  api.get(`/usuario-conquistas/${usuarioId}`)
+
+export const getMyProfile = (): Promise<AxiosResponse<Usuario>> =>
+  api.get('/usuarios/me')
+export const fetchDashboardData = (): Promise<AxiosResponse<{
+  usuario: Usuario
+  treinos: Treino[]
+  progresso: Progresso
+  proximosTreinos: ProximoTreino[]
+}>> => {
+  return api.get("/dashboard")
+}
+export const findUserByEmail = (email: string): Promise<AxiosResponse<Usuario>> =>
+  api.get(`/usuarios/buscar-por-email?email=${encodeURIComponent(email)}`)
+
 export const listUsers = (): Promise<AxiosResponse<Usuario[]>> =>
   api.get('/usuarios')
 
@@ -27,10 +168,7 @@ export const getUser = (id: string): Promise<AxiosResponse<Usuario>> =>
 export const createUser = (data: Partial<Usuario>): Promise<AxiosResponse<Usuario>> =>
   api.post('/usuarios', data)
 
-export const updateUser = (
-  id: string,
-  data: Partial<Usuario>
-): Promise<AxiosResponse<Usuario>> =>
+export const updateUser = (id: string, data: Partial<Usuario>): Promise<AxiosResponse<Usuario>> =>
   api.put(`/usuarios/${id}`, data)
 
 export const deleteUser = (id: string): Promise<AxiosResponse<void>> =>
@@ -38,49 +176,5 @@ export const deleteUser = (id: string): Promise<AxiosResponse<void>> =>
 
 export const validateEmail = (userId: string): Promise<AxiosResponse<Usuario>> =>
   api.put(`/usuarios/${userId}/validate-email`)
-
-// Treinos
-export const fetchWorkouts = (): Promise<AxiosResponse<Treino[]>> =>
-  api.get('/treinos')
-
-export const completeExercise = (
-  exerciseLog: { treinoId: string; exercicioId: string; feito: boolean }
-): Promise<AxiosResponse<any>> =>
-  api.post('/treino-exercicios/complete', exerciseLog)
-
-// Exercícios
-export const fetchExercises = (): Promise<AxiosResponse<Exercicio[]>> =>
-  api.get('/exercicios')
-
-// Histórico de treinos
-export const fetchHistory = (): Promise<AxiosResponse<any>> =>
-  api.get('/historicos')
-
-// FAQ e Dicas
-export const fetchFaq = (): Promise<AxiosResponse<any>> =>
-  api.get('/faq')
-export const fetchDicas = (): Promise<AxiosResponse<any>> =>
-  api.get('/dicas')
-
-// Gamificação
-export const addConquista = (
-  usuarioId: string,
-  conquistaId: string
-): Promise<AxiosResponse<any>> =>
-  api.post('/usuario-conquistas', { usuarioId, conquistaId })
-
-export const fetchConquistas = (usuarioId: string): Promise<AxiosResponse<any>> =>
-  api.get(`/usuario-conquistas/${usuarioId}`)
-
-// IA (stubs)
-export const sugestaoAlongamento = (
-  grupoMuscular: string
-): Promise<AxiosResponse<string>> =>
-  api.post('/ia/alongamento', { grupoMuscular })
-
-export const descricaoExercicio = (
-  nomeExercicio: string
-): Promise<AxiosResponse<string>> =>
-  api.post('/ia/descricao-exercicio', { nomeExercicio })
 
 export default api

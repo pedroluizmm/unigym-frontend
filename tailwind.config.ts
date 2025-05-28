@@ -68,7 +68,7 @@ const config: Config = {
           300: "#a5b4fc",
           400: "#818cf8",
           500: "#6366f1",
-          600: "#1a4bff", // Cor principal do UniGym
+          600: "#1a4bff",
           700: "#1e40af",
           800: "#1e3a8a",
           900: "#1e3a8a",

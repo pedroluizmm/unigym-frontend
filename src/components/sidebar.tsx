@@ -1,40 +1,67 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
   Dumbbell,
   History,
-  User,
+  User as UserIcon,
   Award,
   HelpCircle,
   LogOut,
   X,
 } from "lucide-react";
+import { getMyProfile, type Usuario } from "@/services/api";
 
 interface SidebarProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  // Você pode continuar recebendo `user` por props, mas será apenas fallback
   user?: { nome: string; role?: string };
 }
 
 export function Sidebar({ open, setOpen, user }: SidebarProps) {
   const navigate = useNavigate();
 
-  const initials = user?.nome
-    ? user.nome
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase()
-    : "US";
+  // Estado para o usuário logado
+  const [usuarioPerfil, setUsuarioPerfil] = useState<Usuario | null>(null);
+  const [loadingPerfil, setLoadingPerfil] = useState<boolean>(true);
+  const [errorPerfil, setErrorPerfil] = useState<string | null>(null);
+
+  // Busca o perfil quando o componente monta
+  useEffect(() => {
+    const fetchPerfil = async () => {
+      try {
+        setLoadingPerfil(true);
+        const res = await getMyProfile();
+        setUsuarioPerfil(res.data);
+      } catch (err: any) {
+        console.error(err);
+        setErrorPerfil(err.response?.data?.message || err.message || "Erro ao carregar perfil");
+      } finally {
+        setLoadingPerfil(false);
+      }
+    };
+    fetchPerfil();
+  }, []);
+
+  // Se quiser, trate loading e erro aqui (por simplicidade, seguimos mesmo sem dados)
+  const displayName = usuarioPerfil?.nome ?? user?.nome ?? "Usuário";
+  const displayRole = (usuarioPerfil as any)?.role ?? user?.role ?? "Aluno";
+
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const menuItems = [
     { to: "/dashboard", icon: Home, label: "Dashboard" },
     { to: "/treino", icon: Dumbbell, label: "Treinos" },
     { to: "/historico", icon: History, label: "Histórico" },
-    { to: "/perfil", icon: User, label: "Perfil" },
+    { to: "/perfil", icon: UserIcon, label: "Perfil" },
     { to: "/conquistas", icon: Award, label: "Conquistas" },
     { to: "/faq-dicas", icon: HelpCircle, label: "FAQ e Dicas" },
   ];
@@ -61,6 +88,7 @@ export function Sidebar({ open, setOpen, user }: SidebarProps) {
           lg:relative lg:translate-x-0 lg:shadow-none
         `}
       >
+        {/* Cabeçalho */}
         <div className="p-4 sm:p-6 flex justify-between items-center border-b border-gray-200 bg-blue-600">
           <h1 className="text-lg sm:text-xl font-bold text-white">UniGym</h1>
           <button onClick={() => setOpen(false)} className="p-1 rounded-md text-white lg:hidden">
@@ -68,6 +96,7 @@ export function Sidebar({ open, setOpen, user }: SidebarProps) {
           </button>
         </div>
 
+        {/* Menu */}
         <nav className="p-3 sm:p-4 flex-1 overflow-y-auto">
           <ul className="space-y-1 sm:space-y-2">
             {menuItems.map((item) => {
@@ -97,8 +126,8 @@ export function Sidebar({ open, setOpen, user }: SidebarProps) {
                 <span className="text-blue-600 font-bold text-sm sm:text-base">{initials}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{user?.nome || "Usuário"}</p>
-                <p className="text-xs sm:text-sm text-blue-600 font-medium">{user?.role || "Aluno"}</p>
+                <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{displayName}</p>
+                <p className="text-xs sm:text-sm text-blue-600 font-medium">{displayRole}</p>
               </div>
             </div>
 

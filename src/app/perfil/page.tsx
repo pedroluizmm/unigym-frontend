@@ -8,7 +8,6 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Auxiliar para gerar iniciais
   const getInitials = (name: string = "") =>
     name
       .split(" ")

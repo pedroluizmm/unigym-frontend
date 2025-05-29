@@ -44,7 +44,7 @@ export interface UsuarioConquista {
 export interface TreinoModel {
   _id: string
   usuario: string
-  data: string         
+  data: string
   grupamentoMuscular: string
   statusTreino: 'pendente' | 'concluído'
 }
@@ -113,6 +113,15 @@ export interface Historico {
   observacoes?: string;
   feedback?: string;
 }
+export interface DashboardData {
+  treinos: Treino[];
+  progresso: Progresso;
+  proximosTreinos: ProximoTreino[];
+  history: { date: string; treinos: number }[];
+}
+
+export const fetchDashboardData = (): Promise<AxiosResponse<DashboardData>> =>
+  api.get('/dashboard');
 
 export const requestPasswordReset = (email: string) =>
   api.post('/usuarios/recuperar-senha', { email });
@@ -148,14 +157,7 @@ export const getUsuarioConquistas = (usuarioId: string): Promise<AxiosResponse<U
 
 export const getMyProfile = (): Promise<AxiosResponse<Usuario>> =>
   api.get('/usuarios/me')
-export const fetchDashboardData = (): Promise<AxiosResponse<{
-  usuario: Usuario
-  treinos: Treino[]
-  progresso: Progresso
-  proximosTreinos: ProximoTreino[]
-}>> => {
-  return api.get("/dashboard")
-}
+
 export const findUserByEmail = (email: string): Promise<AxiosResponse<Usuario>> =>
   api.get(`/usuarios/buscar-por-email?email=${encodeURIComponent(email)}`)
 

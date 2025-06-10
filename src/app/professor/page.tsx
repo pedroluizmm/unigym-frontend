@@ -1020,52 +1020,7 @@ export default function ProfessorPage() {
             </div>
           </section>
 
-          {/* ===== HISTÓRICO ===== */}
-          <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center mb-4">
-              <Clock className="h-6 w-6 text-blue-600 mr-2" />
-              <h2 className="text-lg font-bold text-gray-900">Histórico de Treinos</h2>
-            </div>
 
-            {loadingHist ? (
-              <p className="text-blue-600">Carregando histórico…</p>
-            ) : errorHist ? (
-              <p className="text-red-600">{errorHist}</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto border-collapse">
-                  <thead>
-                    <tr className="bg-blue-50">
-                      <th className="p-2 text-left text-sm font-medium">Data Realização</th>
-                      <th className="p-2 text-left text-sm font-medium">Nome do Treino</th>
-                      <th className="p-2 text-left text-sm font-medium">Tempo Total</th>
-                      <th className="p-2 text-left text-sm font-medium">Observações</th>
-                      <th className="p-2 text-left text-sm font-medium">Feedback</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historicos.map((h) => (
-                      <tr key={h._id} className="border-t">
-                        <td className="p-2 text-sm">
-                          {new Date(h.dataRealizacao).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </td>
-                        <td className="p-2 text-sm">{h.treino.nome}</td>
-                        <td className="p-2 text-sm">{h.tempoTotal || "-"}</td>
-                        <td className="p-2 text-sm">{h.observacoes || "-"}</td>
-                        <td className="p-2 text-sm">{h.feedback || "-"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
 
           {/* ===== TREINO-EXERCICIO ===== */}
           <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">

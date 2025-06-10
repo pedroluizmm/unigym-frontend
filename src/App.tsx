@@ -13,6 +13,7 @@ import HistoricoPage from './app/historico/page'
 import PerfilPage from './app/perfil/page'
 import ConquistasPage from './app/conquistas/page'
 import FaqDicasPage from './app/faq-dicas/page'
+import ProfessorPage from './app/professor/page'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/perfil" element={<PerfilPage />} />
         <Route path="/conquistas" element={<ConquistasPage />} />
         <Route path="/faq-dicas" element={<FaqDicasPage />} />
+        <Route path="/professor" element={<ProfessorPage />} />
       </Routes>
     </BrowserRouter>
   )

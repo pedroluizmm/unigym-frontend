@@ -120,7 +120,7 @@ export default function LandingPage() {
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               </div>
-              <span className="text-blue-600 font-bold text-sm sm:text-base">Horários</span>
+              <span className="text-blue-600 font-bold text-sm sm:text-base">Em breve</span>
             </a>
 
             <a href="#" className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">

@@ -42,6 +42,13 @@ export default function ProfessorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [perfil, setPerfil] = useState<Usuario | null>(null);
 
+  // Redireciona para login caso não exista token salvo
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      window.location.href = '/login';
+    }
+  }, []);
+
   // ---- Usuários ----
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [userForm, setUserForm] = useState<Partial<Usuario>>({});

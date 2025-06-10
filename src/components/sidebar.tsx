@@ -11,6 +11,7 @@ import {
   HelpCircle,
   LogOut,
   X,
+  Pencil,
 } from "lucide-react";
 import { getMyProfile, type Usuario } from "@/services/api";
 
@@ -64,6 +65,7 @@ export function Sidebar({ open, setOpen, user }: SidebarProps) {
     { to: "/perfil", icon: UserIcon, label: "Perfil" },
     { to: "/conquistas", icon: Award, label: "Conquistas" },
     { to: "/faq-dicas", icon: HelpCircle, label: "FAQ e Dicas" },
+    { to: "/professor", icon: Pencil, label: "Professor/Admin" },
   ];
 
   const handleLogout = () => {

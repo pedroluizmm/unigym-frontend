@@ -13,6 +13,7 @@ import HistoricoPage from './app/historico/page'
 import PerfilPage from './app/perfil/page'
 import ConquistasPage from './app/conquistas/page'
 import FaqDicasPage from './app/faq-dicas/page'
+import ProfessoresPage from './app/professores/page'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/historico" element={<HistoricoPage />} />
         <Route path="/perfil" element={<PerfilPage />} />
         <Route path="/conquistas" element={<ConquistasPage />} />
+        <Route path="/professores" element={<ProfessoresPage />} />
         <Route path="/faq-dicas" element={<FaqDicasPage />} />
       </Routes>
     </BrowserRouter>

@@ -84,7 +84,7 @@ export default function MenuPage() {
             <span>Horários</span>
           </a>
 
-          <a href="#professores" className="flex items-center text-white text-lg">
+          <a href="/professores" className="flex items-center text-white text-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"

@@ -198,10 +198,9 @@ export default function ProfessorPage() {
 
   const handleCreateUser = async () => {
     try {
-      // Aqui é onde entraria a chamada à API para criar
-      const res = await api.post("/usuarios", userForm);
-      // Atualize localmente a lista de usuários (por ex. refetch ou concat)
-      // resetForm, fechar modal, mostrar alerta etc.
+      await api.post("/usuarios", userForm);
+      setUserForm({});
+      await loadUsers();
     } catch (err: any) {
       console.error("Falha ao criar usuário:", err.response?.data?.message || err.message);
       alert("Erro ao criar usuário: " + (err.response?.data?.message || err.message));
@@ -216,10 +215,10 @@ export default function ProfessorPage() {
   const handleUpdateUser = async () => {
     if (!userEditId) return;
     try {
-      // Aqui é onde entraria a chamada à API para atualizar
-      const res = await updateUser(userEditId, userForm);
-      // Atualize localmente a lista de usuários (por ex. refetch ou substituir o item)
-      // resetForm, fechar modal, notificar sucesso, etc.
+      await updateUser(userEditId, userForm);
+      setUserEditId(null);
+      setUserForm({});
+      await loadUsers();
     } catch (err: any) {
       console.error("Falha ao atualizar usuário:", err.response?.data?.message || err.message);
       alert("Erro ao atualizar usuário: " + (err.response?.data?.message || err.message));

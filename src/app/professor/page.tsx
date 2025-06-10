@@ -64,6 +64,7 @@ export default function ProfessorPage() {
   // ---- Conquistas ----
   const [conquistas, setConquistas] = useState<Conquista[]>([]);
   const [conquistaForm, setConquistaForm] = useState<Partial<Conquista>>({});
+  const [conquistaEditId, setConquistaEditId] = useState<string | null>(null);
   const [loadingConqs, setLoadingConqs] = useState<boolean>(true);
   const [errorConqs, setErrorConqs] = useState<string | null>(null);
 
@@ -91,6 +92,7 @@ export default function ProfessorPage() {
     cargaRecomendada?: number;
     tempoIntervalo?: string;
   }>>({});
+  const [exEditId, setExEditId] = useState<string | null>(null);
   const [loadingExs, setLoadingExs] = useState<boolean>(true);
   const [errorExs, setErrorExs] = useState<string | null>(null);
 
@@ -230,6 +232,17 @@ export default function ProfessorPage() {
     setUserForm({});
   };
 
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm('Remover usuário?')) return;
+    try {
+      await api.delete(`/usuarios/${id}`);
+      await loadUsers();
+    } catch (err: any) {
+      console.error('Falha ao remover usuário:', err.response?.data?.message || err.message);
+      alert('Erro ao remover usuário: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   // ---- HANDLERS: TREINO ----
   const handleTreinoFormChange = (field: keyof Omit<TreinoModel, "_id">, value: any) => {
     setTreinoForm({ ...treinoForm, [field]: value });
@@ -274,6 +287,17 @@ export default function ProfessorPage() {
     setTreinoForm({});
   };
 
+  const handleDeleteTreino = async (id: string) => {
+    if (!confirm('Remover treino?')) return;
+    try {
+      await api.delete(`/treinos/${id}`);
+      await loadTreinos();
+    } catch (err: any) {
+      console.error('Falha ao remover treino:', err.response?.data?.message || err.message);
+      alert('Erro ao remover treino: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   // ---- HANDLERS: CONQUISTA ----
   const handleConquistaFormChange = (field: keyof Conquista, value: any) => {
     setConquistaForm({ ...conquistaForm, [field]: value });
@@ -287,6 +311,40 @@ export default function ProfessorPage() {
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Erro ao criar conquista");
+    }
+  };
+
+  const handleEditConquista = (c: Conquista) => {
+    setConquistaEditId(c._id);
+    setConquistaForm({ nome: c.nome, descricao: c.descricao, iconeUrl: c.iconeUrl });
+  };
+
+  const handleUpdateConquista = async () => {
+    if (!conquistaEditId) return;
+    try {
+      await api.put<Conquista>(`/conquistas/${conquistaEditId}`, conquistaForm);
+      setConquistaEditId(null);
+      setConquistaForm({});
+      await loadConquistas();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Erro ao atualizar conquista");
+    }
+  };
+
+  const handleCancelEditConquista = () => {
+    setConquistaEditId(null);
+    setConquistaForm({});
+  };
+
+  const handleDeleteConquista = async (id: string) => {
+    if (!confirm('Remover conquista?')) return;
+    try {
+      await api.delete(`/conquistas/${id}`);
+      await loadConquistas();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Erro ao remover conquista");
     }
   };
 
@@ -316,6 +374,17 @@ export default function ProfessorPage() {
       setErrorAssignConqs(err.message || "Erro ao atribuir conquista");
     } finally {
       setLoadingAssignConqs(false);
+    }
+  };
+
+  const handleDeleteUsuarioConquista = async (id: string) => {
+    if (!confirm('Remover atribuição?')) return;
+    try {
+      await api.delete(`/usuario-conquistas/${id}`);
+      await loadUsuariosConquistas();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Erro ao remover atribuição');
     }
   };
 
@@ -353,6 +422,47 @@ export default function ProfessorPage() {
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Erro ao criar TreinoExercicio");
+    }
+  };
+
+  const handleEditTreinoExercicio = (te: TreinoExercicio) => {
+    setExEditId(te._id);
+    setExForm({
+      treino: te.treino._id,
+      exercicio: te.exercicio._id,
+      series: te.series,
+      repeticoes: te.repeticoes,
+      cargaRecomendada: te.cargaRecomendada,
+      tempoIntervalo: te.tempoIntervalo,
+    });
+  };
+
+  const handleUpdateTreinoExercicio = async () => {
+    if (!exEditId) return;
+    try {
+      await api.put(`/treinoExercicio/${exEditId}`, exForm);
+      setExEditId(null);
+      setExForm({});
+      await loadTreinoExercicios();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Erro ao atualizar TreinoExercicio");
+    }
+  };
+
+  const handleCancelEditTreinoExercicio = () => {
+    setExEditId(null);
+    setExForm({});
+  };
+
+  const handleDeleteTreinoExercicio = async (id: string) => {
+    if (!confirm('Remover vínculo?')) return;
+    try {
+      await api.delete(`/treinoExercicio/${id}`);
+      await loadTreinoExercicios();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Erro ao remover TreinoExercicio");
     }
   };
 
@@ -421,6 +531,12 @@ export default function ProfessorPage() {
                               onClick={() => handleEditUser(u)}
                             >
                               Editar
+                            </button>
+                            <button
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                              onClick={() => handleDeleteUser(u._id)}
+                            >
+                              Excluir
                             </button>
                           </td>
                         </tr>
@@ -549,12 +665,6 @@ export default function ProfessorPage() {
                           Salvar Alterações
                         </button>
                         <button
-                          onClick={handleUpdateUser}
-                          className="bg-green-600 text-white px-4 py-2 rounded"
-                        >
-                          Atualizar
-                        </button>
-                        <button
                           className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
                           onClick={handleCancelEditUser}
                         >
@@ -623,6 +733,12 @@ export default function ProfessorPage() {
                               onClick={() => handleEditTreino(t)}
                             >
                               Editar
+                            </button>
+                            <button
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                              onClick={() => handleDeleteTreino(t._id)}
+                            >
+                              Excluir
                             </button>
                           </td>
                         </tr>
@@ -727,6 +843,7 @@ export default function ProfessorPage() {
                         <th className="p-2 text-left text-sm font-medium">Nome</th>
                         <th className="p-2 text-left text-sm font-medium">Descrição</th>
                         <th className="p-2 text-left text-sm font-medium">Ícone URL</th>
+                        <th className="p-2 text-left text-sm font-medium">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -735,15 +852,31 @@ export default function ProfessorPage() {
                           <td className="p-2 text-sm">{c.nome}</td>
                           <td className="p-2 text-sm">{c.descricao || "-"}</td>
                           <td className="p-2 text-sm">{c.iconeUrl || "-"}</td>
+                          <td className="p-2 text-sm space-x-2">
+                            <button
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
+                              onClick={() => handleEditConquista(c)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                              onClick={() => handleDeleteConquista(c._id)}
+                            >
+                              Excluir
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Formulário de Criação de Conquista */}
+                {/* Formulário de Criação / Edição de Conquista */}
                 <div className="border-t pt-4">
-                  <h3 className="text-md font-semibold mb-2">Criar Nova Conquista</h3>
+                  <h3 className="text-md font-semibold mb-2">
+                    {conquistaEditId ? 'Editar Conquista' : 'Criar Nova Conquista'}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                       type="text"
@@ -767,13 +900,30 @@ export default function ProfessorPage() {
                       className="p-2 border border-gray-300 rounded"
                     />
                   </div>
-                  <div className="mt-4">
-                    <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded"
-                      onClick={handleCreateConquista}
-                    >
-                      Criar Conquista
-                    </button>
+                  <div className="mt-4 space-x-2">
+                    {conquistaEditId ? (
+                      <>
+                        <button
+                          className="px-4 py-2 bg-green-600 text-white rounded"
+                          onClick={handleUpdateConquista}
+                        >
+                          Salvar Alterações
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
+                          onClick={handleCancelEditConquista}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded"
+                        onClick={handleCreateConquista}
+                      >
+                        Criar Conquista
+                      </button>
+                    )}
                   </div>
                 </div>
               </>
@@ -829,6 +979,7 @@ export default function ProfessorPage() {
                     <th className="p-2 text-left text-sm font-medium">Usuário ID</th>
                     <th className="p-2 text-left text-sm font-medium">Conquista</th>
                     <th className="p-2 text-left text-sm font-medium">Data</th>
+                    <th className="p-2 text-left text-sm font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -838,12 +989,20 @@ export default function ProfessorPage() {
                       <td className="p-2 text-sm">{uc.conquista.nome}</td>
                       <td className="p-2 text-sm">
                         {new Date(uc.data).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}
+                      </td>
+                      <td className="p-2 text-sm">
+                        <button
+                          className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                          onClick={() => handleDeleteUsuarioConquista(uc._id)}
+                        >
+                          Excluir
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -922,6 +1081,7 @@ export default function ProfessorPage() {
                         <th className="p-2 text-left text-sm font-medium">Séries</th>
                         <th className="p-2 text-left text-sm font-medium">Repetições</th>
                         <th className="p-2 text-left text-sm font-medium">Descanso</th>
+                        <th className="p-2 text-left text-sm font-medium">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -932,6 +1092,20 @@ export default function ProfessorPage() {
                           <td className="p-2 text-sm">{te.series}</td>
                           <td className="p-2 text-sm">{te.repeticoes}</td>
                           <td className="p-2 text-sm">{te.tempoIntervalo || "-"}</td>
+                          <td className="p-2 text-sm space-x-2">
+                            <button
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
+                              onClick={() => handleEditTreinoExercicio(te)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                              onClick={() => handleDeleteTreinoExercicio(te._id)}
+                            >
+                              Excluir
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -940,7 +1114,9 @@ export default function ProfessorPage() {
 
                 {/* Formulário de Criação de TreinoExercicio */}
                 <div className="border-t pt-4">
-                  <h3 className="text-md font-semibold mb-2">Vincular Exercício a Treino</h3>
+                  <h3 className="text-md font-semibold mb-2">
+                    {exEditId ? 'Editar Vínculo' : 'Vincular Exercício a Treino'}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <select
                       value={exForm.treino || ""}
@@ -992,13 +1168,30 @@ export default function ProfessorPage() {
                       className="p-2 border border-gray-300 rounded"
                     />
                   </div>
-                  <div className="mt-4">
-                    <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded"
-                      onClick={handleCreateTreinoExercicio}
-                    >
-                      Vincular
-                    </button>
+                  <div className="mt-4 space-x-2">
+                    {exEditId ? (
+                      <>
+                        <button
+                          className="px-4 py-2 bg-green-600 text-white rounded"
+                          onClick={handleUpdateTreinoExercicio}
+                        >
+                          Salvar Alterações
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
+                          onClick={handleCancelEditTreinoExercicio}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded"
+                        onClick={handleCreateTreinoExercicio}
+                      >
+                        Vincular
+                      </button>
+                    )}
                   </div>
                 </div>
               </>

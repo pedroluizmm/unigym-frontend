@@ -653,13 +653,6 @@ export default function ProfessorPage() {
                         className="p-2 border border-gray-300 rounded"
                       />
                     )}
-                    <input
-                      type="date"
-                      placeholder="Data de Nascimento"
-                      value={userForm.dataNascimento?.substring(0, 10) || ""}
-                      onChange={(e) => handleUserFormChange("dataNascimento", e.target.value)}
-                      className="p-2 border border-gray-300 rounded"
-                    />
                     <select
                       value={userForm.statusValidacao ? "true" : "false"}
                       onChange={(e) =>

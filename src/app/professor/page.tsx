@@ -145,7 +145,7 @@ export default function ProfessorPage() {
   const loadTreinos = async () => {
     setLoadingTreinos(true);
     try {
-      const res = await getTreinos();
+      const res = await getTreinos({ all: true });
       setTreinos(res.data);
       setErrorTreinos(null);
     } catch (err: any) {
@@ -173,7 +173,7 @@ export default function ProfessorPage() {
   const loadHistorico = async () => {
     setLoadingHist(true);
     try {
-      const res = await getHistorico();
+      const res = await getHistorico({ all: true });
       setHistoricos(res.data);
       setErrorHist(null);
     } catch (err: any) {

@@ -146,8 +146,10 @@ export const verifyResetCode = (email: string, code: string) =>
 export const resetPassword = (email: string, senha: string) =>
   api.post('/usuarios/recuperar-senha/nova-senha', { email, senha });
 
-export const getTreinos = (): Promise<AxiosResponse<TreinoModel[]>> =>
-  api.get('/treinos')
+export const getTreinos = (
+  params?: { all?: boolean }
+): Promise<AxiosResponse<TreinoModel[]>> =>
+  api.get('/treinos', { params })
 
 export const getTreinoExercicios = (treinoId: string): Promise<AxiosResponse<TreinoExercicio[]>> =>
   api.get(`/treinoExercicio?treino=${treinoId}`)
@@ -162,8 +164,10 @@ export const updateTreino = (
   }>
 ): Promise<AxiosResponse<TreinoModel>> =>
   api.put(`/treinos/${id}`, data)
-export const getHistorico = (): Promise<AxiosResponse<Historico[]>> =>
-  api.get('/historicos');
+export const getHistorico = (
+  params?: { all?: boolean }
+): Promise<AxiosResponse<Historico[]>> =>
+  api.get('/historicos', { params });
 export const getConquistas = (): Promise<AxiosResponse<Conquista[]>> =>
   api.get('/conquistas')
 export const getUsuarioConquistas = (usuarioId: string): Promise<AxiosResponse<UsuarioConquista[]>> =>

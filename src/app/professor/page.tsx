@@ -644,6 +644,15 @@ export default function ProfessorPage() {
                       onChange={(e) => handleUserFormChange("email", e.target.value)}
                       className="p-2 border border-gray-300 rounded"
                     />
+                    {!userEditId && (
+                      <input
+                        type="password"
+                        placeholder="Senha"
+                        value={userForm.senha || ""}
+                        onChange={(e) => handleUserFormChange("senha", e.target.value)}
+                        className="p-2 border border-gray-300 rounded"
+                      />
+                    )}
                     <input
                       type="date"
                       placeholder="Data de Nascimento"
